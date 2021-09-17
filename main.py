@@ -1,16 +1,24 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+import importlib
+import os
+import inspect
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def bots_import():
+    """Импортирует модули с ботами в словарь."""
+    all_bots = {}
+    new_bots = [i[:-3] for i in os.listdir() if '.py' in i and i != 'main.py']
+    for bot in new_bots:
+        all_bots.update({bot: importlib.import_module(bot)})
+    return all_bots
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+def bots_init(module_name, game):
+    return inspect.getmembers(all_bots[module_name], inspect.isclass)[0][1](game)
+
+
+all_bots = bots_import()
+bot1 = bots_init('testbot1', '123')
+bot2 = bots_init('testbot2', '123')
+print(bot1.play())
+print(bot2.play())
+# print(inspect.getmembers(all_bots['testbot1'], inspect.isclass)[0][1])
