@@ -1,4 +1,7 @@
-a, b = map(int, input().split())
+class game1:
 
-print(a + b)
-print(a - b)
+    def __init__(self, name):
+        self.name = name
+
+    def play(self):
+        return '1 2'

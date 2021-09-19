@@ -4,26 +4,30 @@ import sys, inspect
 import subprocess
 
 
+def game_import():
+    """Импортирует модули с играми в словарь."""
 
-def bots_import():
-    """Импортирует модули с ботами в словарь."""
-    all_bots = {}
-    new_bots = [i[:-3] for i in os.listdir() if '.py' in i and i != 'main.py' and i != 'gametest.py']
+    all_games = {}
+    new_games = [i[:-3] for i in os.listdir() if i[:4] == 'game']
+    for game in new_games:
+        all_games.update({game: importlib.import_module(game)})
+    return all_games
+
+
+def bot_import():
+    new_bots = [i[:-3] for i in os.listdir() if i[:4] == 'Bot']
     for bot in new_bots:
         all_bots.update({bot: importlib.import_module(bot)})
     return all_bots
 
 
-def bots_init(module_name, game):
-    return inspect.getmembers(all_bots[module_name], inspect.isclass)[0][1](game)
+def class_init(module_name, name):
+    return inspect.getmembers(all_games[module_name], inspect.isclass)[0][1](name)
 
 
-all_bots = bots_import()
-bot1 = bots_init('testbot1', '123')
-bot2 = bots_init('testbot2', '123')
-print(bot1.play())
-print(bot2.play())
+all_games = game_import()
+all_bots = bot_import()
+game1 = class_init('gametest', '123')
+print(game1.play())
+game_condition = bytearray(game1.play(), encoding='utf8')
 
-res = subprocess.run([sys.executable, 'gametest.py'], input=b'1 2', capture_output=True)
-print(str(res.stdout))
-print(res.stderr)
