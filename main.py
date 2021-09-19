@@ -4,30 +4,25 @@ import sys, inspect
 import subprocess
 
 
-def game_import():
+def module_import():
     """Импортирует модули с играми в словарь."""
 
-    all_games = {}
-    new_games = [i[:-3] for i in os.listdir() if i[:4] == 'game']
+    all_module = {}
+    all_module.update({'bot': importlib.import_module('bot')})
+    new_games = [i[:-3] for i in os.listdir() if i == 'gametest.py']
     for game in new_games:
-        all_games.update({game: importlib.import_module(game)})
-    return all_games
+        all_module.update({game: importlib.import_module(game)})
 
-
-def bot_import():
-    new_bots = [i[:-3] for i in os.listdir() if i[:4] == 'Bot']
-    for bot in new_bots:
-        all_bots.update({bot: importlib.import_module(bot)})
-    return all_bots
+    return all_module
 
 
 def class_init(module_name, name):
-    return inspect.getmembers(all_games[module_name], inspect.isclass)[0][1](name)
+    return inspect.getmembers(all_module[module_name], inspect.isclass)[0][1](name)
 
 
-all_games = game_import()
-all_bots = bot_import()
+all_module = module_import()
+bot = class_init('bot', input())
 game1 = class_init('gametest', '123')
-print(game1.play())
+print(bot.request_bot('12 32'))
 game_condition = bytearray(game1.play(), encoding='utf8')
 
