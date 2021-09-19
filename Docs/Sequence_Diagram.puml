@@ -1,0 +1,49 @@
+@startuml Tournament sequence diagram
+actor User
+participant Framework
+entity Bot
+entity Game
+
+group Tournament
+
+    group Tournament Initialization
+        rnote over User : Select the game
+        rnote over User : Register all the bots
+        User -> Framework : Tournament start request (with parameters)
+    end
+
+    group Game [Until everyone played with everyone]
+
+        group Game Initialization
+            User -> Framework : Game start request
+            Framework -> Game : Game initialization request
+            rnote over Game : Game initialization
+            Game -> Framework : Response with game state
+            Framework -> User : Display game state
+        end
+
+        group Game Turn [Until the game's end]
+            Framework -> Game : Request for game board state
+            Game -> Framework : Response with the board state
+            Framework -> Bot : Request for turn
+            rnote over Bot : Calculate turn
+            Bot -> Framework : Response with bot's turn
+            Framework -> Game : Message with bot's turn
+            rnote over Game : Calculate how the game state\n changes with this turn
+            Game -> Framework : Response with updated state
+            Framework -> User : Display updated game state
+        end
+
+        group After-game report
+            rnote over Framework : Calculate the winner
+            Framework -> User : Display the game result
+        end
+    end
+
+    group After-tournament report
+        rnote over Framework : Calculate the winners \n of the tournament
+        Framework -> User : Display the tournament results
+    end
+
+end
+@enduml
