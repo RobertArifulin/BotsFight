@@ -6,6 +6,14 @@ class Game:
         платформой.
 
 
+        Attributes
+        ----------
+        board_string : str
+            состояние игрового поля
+        status : Status
+            статус игры
+
+
         Methods
         -------
         get_board_string()
@@ -26,25 +34,25 @@ class Game:
         self.board_string = None
         self.status = None
 
-    def get_board_string(self):
+    def get_board_string(self) -> str:
         """ Возвращает состояние поля."""
 
         return self.board_string
 
-    def get_status(self):
+    def get_status(self) -> int:
         """ Возвращает статус игры (Первый ходит, Второй победил и т.д.)."""
 
         return self.status
 
-    def bot_made_turn(self):
+    def bot_made_turn(self) -> int:
         """ На основе хода бота изменяет состояние поля и возвращает статус игры."""
 
         return self.status
 
-    def draw_board_image(self):
+    def draw_board_image(self) -> None:
         """ Отрисовывает игру."""
 
-        pass
+        return None
 
 
 class Status(Enum):
@@ -55,4 +63,3 @@ class Status(Enum):
     bot1_won = 3
     bot2_won = 4
     draw = 5
-
