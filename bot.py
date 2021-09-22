@@ -18,9 +18,9 @@ class Bot:
         request_bot(game_condition)
             Запускает исполняемый файл и передает ему на вход game_condition.
             Получает ответ и возвращает его.
-        """
+    """
     path: str
-    
+
     def __init__(self, path: str):
         self.path = path
 
