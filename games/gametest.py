@@ -1,17 +1,13 @@
 import importlib.util
 import inspect
-
-spec = importlib.util.spec_from_file_location('Game', r'C:\Users\rober\PycharmProjects\BotsFight\game.py')
-foo = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(foo)
-Game = [i for i in inspect.getmembers(foo, inspect.isclass) if i[0] == 'Game'][0][1]
+from game import Game
 
 
-class game1(Game):
+class GameTest(Game):
 
-    def __init__(self, name):
-        self.name = name
-        self.board = [[0] * 5 for _ in range(5)]
+    def __init__(self):
+        super().__init__()
+        self.board = [[0] * 5 for _ in range(10)]
 
-    def play(self):
-        return '1 2'
+    def get_board_string(self) -> str:
+        return f'{len(self.board)} {len(self.board[0])}'
