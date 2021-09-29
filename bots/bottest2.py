@@ -1,3 +1,3 @@
 if __name__ == "__main__":
-    a, b = map(int, input().split())
-    print('a + b =', a + b)
+    board = [[int(i) for i in line.split()] for line in input().split('\n')]
+    print(f'2 {board[0][1] + 2}')

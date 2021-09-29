@@ -26,14 +26,18 @@ class Game:
 
         Methods
         -------
+        game_init()
+            Возвращает состояние поля
+            Происходит создание новой игры, поля для нее и т.д.
+
         get_board_string()
             Возвращает состояние поля.
 
         get_status()
             Возвращает статус игры (Первый ходит, Второй победил и т.д.).
 
-        bot_made_turn()
-            На основе хода бота изменяет состояние поля и возвращает статус игры.
+        bot_made_turn(turn)
+            На основе хода (turn) бота изменяет состояние поля и возвращает статус игры.
 
         draw_board_image()
             Отрисовывает игру.
@@ -45,22 +49,29 @@ class Game:
     name: str
     description: str
     author: str
+    turn: str
 
     def __init__(self):
         self.board_string = ""
         self.status = Status.bot1_next
+
+    def game_init(self) -> str:
+        """ Возвращает состояние поля.
+            Происходит создание новой игры: начальные условия, поля для нее и т.д."""
+
+        return self.board_string
 
     def get_board_string(self) -> str:
         """ Возвращает состояние поля."""
 
         return self.board_string
 
-    def get_status(self) -> int:
+    def get_status(self) -> Status:
         """ Возвращает статус игры (Первый ходит, Второй победил и т.д.)."""
 
         return self.status
 
-    def bot_made_turn(self) -> Status:
+    def bot_made_turn(self, turn: str) -> Status:
         """ На основе хода бота изменяет состояние поля и возвращает статус игры."""
 
         return self.status

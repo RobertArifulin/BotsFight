@@ -3,7 +3,8 @@ import os
 import inspect
 import importlib.util
 from bot import Bot
-from game import Game
+from game import Game, Status
+from  tournament import Tournament
 
 
 def games_import() -> list:
@@ -22,9 +23,17 @@ def games_import() -> list:
     return games
 
 
-games = games_import()
-print(games)
-game = games[0]()
-game_cond = game.get_board_string()
-bot1 = Bot(r'C:\Users\rober\PycharmProjects\BotsFight\bots\bottest1.py')
-print(bot1.request_bot(game_cond))
+def main():
+    games = games_import()
+    print(games)
+    game = games[0]()
+    tournament = Tournament(game)
+    tournament.register_bot(r'C:\Users\rober\PycharmProjects\BotsFight\bots\bottest1.py')
+    tournament.register_bot(r'C:\Users\rober\PycharmProjects\BotsFight\bots\bottest2.py')
+    tournament.create_standings()
+    results = tournament.tournament()
+    print(results[0])
+
+
+if __name__ == '__main__':
+    main()
