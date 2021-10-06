@@ -1,5 +1,6 @@
 from game import Game, Status
 from bot import Bot
+import tkinter
 
 
 class Tournament:
@@ -114,6 +115,7 @@ class Tournament:
         print('final')
         print(self.game.get_board_string())
         print('-----------------------')
+
         return status
 
     def tournament(self):

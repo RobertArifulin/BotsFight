@@ -20,9 +20,11 @@ class Bot:
             Получает ответ и возвращает его.
     """
     path: str
+    name: str
 
     def __init__(self, path: str):
         self.path = path
+        self.name = self.path.split('/')[-1]
 
     def request_bot(self, game_condition: str) -> str:
         """ Запускает исполняемый файл и передает ему на вход game_condition.
