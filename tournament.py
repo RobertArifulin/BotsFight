@@ -1,6 +1,5 @@
 from game import Game, Status
 from bot import Bot
-import tkinter
 
 
 class Tournament:
@@ -12,13 +11,13 @@ class Tournament:
         Attributes
         ----------
         game: Game
-            игра, в которую играют боты
+            Игра, в которую играют боты.
         bots: list[Bot]
-            боты, которые будут участвовать в турнире
+            Боты, которые будут участвовать в турнире.
         standings: list[tuple[Bot, Bot]]
-            турнирная таблица - просто попарный список ботов, где каждый сыгрет с каждым
+            Турнирная таблица - просто попарный список ботов, где каждый сыгрет с каждым.
         tournament_results: list
-            результаты турнира
+            Результаты турнира.
 
 
 
@@ -125,7 +124,12 @@ class Tournament:
 
         for pair in self.standings:
             res = self.play(pair)
-            self.tournament_results.append(res)
+            if res == Status.bot1_won:
+                self.tournament_results.append(f"{pair[0].name} won")
+            elif res == Status.bot1_won:
+                self.tournament_results.append(f"{pair[1].name} won")
+            else:
+                self.tournament_results.append(f"draw between {pair[0].name} and {pair[1].name}")
         return self.tournament_results
 
     def display_game(self, image):

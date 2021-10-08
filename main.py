@@ -11,7 +11,7 @@ from constants import *
 
 
 def games_import() -> dict:
-    """Возвращает список классов всех игр из папки games."""
+    """Возвращает список классов всех игр из папки all_games."""
 
     games = {}
     path = 'games'
@@ -53,7 +53,22 @@ def main():
     root = tk.Tk()
     start_window = StartWindow(game_names)
     start_window.master.mainloop()
-    # test_tournament()
+    bots_paths = start_window.selected_bots
+    game_name = start_window.selected_game
+    speed = start_window.selected_speed
+    game_number = start_window.selected_game_number
+    start_window.master.destroy()
+    # start_window.destroy()
+    print(1)
+
+    game = games[game_name]()
+    tournament = Tournament(game)
+    for bot_path in bots_paths:
+        tournament.register_bot(bot_path)
+
+    tournament.create_standings()
+    results = tournament.tournament()
+    print(results)
 
 
 if __name__ == '__main__':
