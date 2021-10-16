@@ -10,7 +10,7 @@ from bot import Bot
 
 class TournamentWindow(Frame):
     """
-
+    Check commit
     """
 
     def __init__(self, bots_paths: list[str], game: Game, speed: int, game_number: int, origin):
