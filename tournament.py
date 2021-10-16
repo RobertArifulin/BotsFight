@@ -120,7 +120,8 @@ class Tournament:
     def tournament(self):
         """ Для каждой пары (pair) из standings проводит play().
             Результат добовляет в tournament_results.
-            После проведения всех игр возвращает результаты турнира - tournament_results."""
+            После проведения всех игр возвращает результаты турнира - tournament_results.
+        """
 
         for pair in self.standings:
             res = self.play(pair)
