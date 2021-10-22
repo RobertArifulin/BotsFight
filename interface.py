@@ -102,7 +102,7 @@ class TournamentWindow(Frame):
 
     def pause_bt_press(self):
         if self.is_paused:
-            self.is_paused = Falseы
+            self.is_paused = False
             self.window.after((10 - self.speed) * 50 + 10, self.display_game)
             self.pause_bt.configure(text="Старт")
         else:
