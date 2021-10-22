@@ -33,16 +33,24 @@ class TournamentWindow(Frame):
             Настраивает окно, создает и настраивет все виджеты.
         close_bt_press()
             Отвечает за работу close_bt.
-            Закрывает TournamentWindow,
         pause_bt_press()
-
+            Отвечает за работу __pause_bt.
         game_speed_scale_select()
-
+            Отвечает за работу game_speed_scale.
         display_game()
+            Отвечает отрисовку игры.
 
     """
+    window: Toplevel
+    bots_paths: list[str]
+    game: Game
+    game_speed: int
+    game_number: int
+    origin: Tk
+    is_paused: bool
+    tournament: Tournament
 
-    def __init__(self, bots_paths: list[str], game: Game, speed: int, game_number: int, origin):
+    def __init__(self, bots_paths: list[str], game: Game, speed: int, game_number: int, origin: Tk):
         super().__init__()
 
         self.window = Toplevel(background=BG_COLOR)
@@ -50,7 +58,7 @@ class TournamentWindow(Frame):
         self.bots_paths = bots_paths
         self.game = game
         self.game.game_init()
-        self.speed = speed
+        self.game_speed = speed
         self.game_number = game_number
         self.origin = origin
         self.is_paused = False
@@ -95,14 +103,14 @@ class TournamentWindow(Frame):
         close_bt.grid(row=0, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # тестовая кнопка выхода
-        self.pause_bt = Button(frame1, width=12, height=1, command=self.pause_bt_press,
-                               text="Стоп", font="Times 16")
-        self.pause_bt.grid(row=0, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
+        self.__pause_bt = Button(frame1, width=12, height=1, command=self.pause_bt_press,
+                                 text="Стоп", font="Times 16")
+        self.__pause_bt.grid(row=0, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание шкалы скорости
         game_speed_scale = Scale(frame1, from_=1, to=10, orient=HORIZONTAL, font=W1_FONT,
                                  command=self.game_speed_scale_select, background=BG_COLOR)
-        game_speed_scale.set(self.speed)
+        game_speed_scale.set(self.game_speed)
         game_speed_scale.grid(row=0, column=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание поля с текстом для имен выбранных ботов
@@ -138,7 +146,7 @@ class TournamentWindow(Frame):
             frame3.grid_columnconfigure(i, weight=1)
             frame3.grid_rowconfigure(i, weight=1)
 
-        self.board_canvas = Canvas(frame3, height=IMAGE_HEIGHT, width=IMAGE_WIDTH)
+        self.__board_canvas = Canvas(frame3, height=IMAGE_HEIGHT, width=IMAGE_WIDTH)
 
         # ______________________________
         # mainloop
@@ -146,35 +154,39 @@ class TournamentWindow(Frame):
         self.window.mainloop()
 
     def close_bt_press(self):
+        """ Отвечает за работу close_bt. Сворачивает данное окно и разворачивает StartWindow"""
         self.origin.deiconify()
         self.window.withdraw()
 
     def pause_bt_press(self):
+        """ Отвечает за работу __pause_bt. Останавливает/запускает игру."""
         if self.is_paused:
             self.is_paused = False
-            self.pause_bt.configure(text="Стоп")
-            self.window.after((10 - self.speed) * 50 + 10, self.display_game)
+            self.__pause_bt.configure(text="Стоп")
+            self.window.after((10 - self.game_speed) * 50 + 10, self.display_game)
         else:
             self.is_paused = True
-            self.pause_bt.configure(text="Старт")
+            self.__pause_bt.configure(text="Старт")
 
     def game_speed_scale_select(self, val):
-        self.speed = int(float(val))
+        """ Отвечает за работу game_speed_scale. Присваивает selected_speed значение со шкалы."""
+        self.game_speed = int(float(val))
 
     def display_game(self):
+        """ Отвечает за отрисовку игры. Получает результат хода, масштабирует и отрисовывает картинку с полем."""
         image, title, res = self.tournament.tournament()
         if res:
             self.__status_label_var.set(res)
             self.__game_title_var.set(title)
-            if int(IMAGE_HEIGHT / IMAGE_WIDTH * self.board_canvas.winfo_width()):
-                image = image.resize((self.board_canvas.winfo_width(),
-                                      min(int(IMAGE_HEIGHT / IMAGE_WIDTH * self.board_canvas.winfo_width()),
-                                          self.board_canvas.winfo_height())))
+            if int(IMAGE_HEIGHT / IMAGE_WIDTH * self.__board_canvas.winfo_width()):
+                image = image.resize((self.__board_canvas.winfo_width(),
+                                      min(int(IMAGE_HEIGHT / IMAGE_WIDTH * self.__board_canvas.winfo_width()),
+                                          self.__board_canvas.winfo_height())))
             self.window.board = ImageTk.PhotoImage(image)
-            image = self.board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
-            self.board_canvas.pack(expand=True, fill=BOTH)
+            image = self.__board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
+            self.__board_canvas.pack(expand=True, fill=BOTH)
         if not self.is_paused:
-            self.window.after((10 - self.speed) * 50 + 10, self.display_game)
+            self.window.after((10 - self.game_speed) * 50 + 10, self.display_game)
 
 
 class StartWindow(Frame):
@@ -201,7 +213,7 @@ class StartWindow(Frame):
         number_game_entry_select()
             Отвечает за работу number_game_entry.
         start_tournament_bt_press()
-            Отвечает за работу start_tournament_bt.
+            Отвечает за работу __start_tournament_bt.
         game_speed_scale_select()
             Отвечает за работу game_speed_scale.
         number_game_validate()
@@ -222,8 +234,7 @@ class StartWindow(Frame):
         self.__game_number_text = StringVar()
         self.__bot_label_text.set('Выбранные боты:\n')
         self.__game_number_text.set('1')
-        self.start_tournament_bt = None
-        self.selected_bots_text = None
+
         self.games = games
         self.games_names = list(games.keys())
         self.selected_game_name = ""
@@ -231,6 +242,7 @@ class StartWindow(Frame):
         self.selected_bots = []
         self.selected_speed = 1
         self.selected_game_number = 1
+
         self.create_ui()
 
     def create_ui(self):
@@ -294,14 +306,14 @@ class StartWindow(Frame):
         file_explorer_bt.pack(side=LEFT, padx=FRAME_PADX, pady=FRAME_PADY)
 
         # создание поля с текстом для имен выбранных ботов
-        self.selected_bots_text = Text(frame2, height=5, font=W1_FONT, background=BG_COLOR)
-        self.selected_bots_text.insert(1.0, self.__bot_label_text.get())
+        self.__selected_bots_text = Text(frame2, height=5, font=W1_FONT, background=BG_COLOR)
+        self.__selected_bots_text.insert(1.0, self.__bot_label_text.get())
 
         # создание scrollbar для поля с текстом
-        scroll_text = Scrollbar(frame2, command=self.selected_bots_text.yview)
+        scroll_text = Scrollbar(frame2, command=self.__selected_bots_text.yview)
         scroll_text.pack(side=RIGHT, fill=Y, padx=FRAME_PADX, pady=FRAME_PADY)
-        self.selected_bots_text.configure(state='disabled', yscrollcommand=scroll_text.set)
-        self.selected_bots_text.pack(side=LEFT, padx=FRAME_PADX, pady=FRAME_PADY)
+        self.__selected_bots_text.configure(state='disabled', yscrollcommand=scroll_text.set)
+        self.__selected_bots_text.pack(side=LEFT, padx=FRAME_PADX, pady=FRAME_PADY)
 
         # ______________________________
         # Блок 3
@@ -344,9 +356,9 @@ class StartWindow(Frame):
         frame4.pack(expand=True)
 
         # создание кнопки начала турнира
-        self.start_tournament_bt = Button(frame4, width=15, height=2, command=self.start_tournament_bt_press,
-                                          text="Начать Турнир", font="Times 16", state="disable")
-        self.start_tournament_bt.pack(padx=FRAME_PADX, pady=FRAME_PADY)
+        self.__start_tournament_bt = Button(frame4, width=15, height=2, command=self.start_tournament_bt_press,
+                                            text="Начать Турнир", font="Times 16", state="disable")
+        self.__start_tournament_bt.pack(padx=FRAME_PADX, pady=FRAME_PADY)
 
         # ______________________________
         # mainloop
@@ -354,6 +366,7 @@ class StartWindow(Frame):
 
     def number_game_validate(self, action, index, value_if_allowed, prior_value,
                              text, validation_type, trigger_type, widget_name):
+        """ Отвечает за работу game_listbox. Не дает вписать некорректное значение."""
         if value_if_allowed:
             try:
                 a = int(value_if_allowed)
@@ -364,17 +377,22 @@ class StartWindow(Frame):
         return False
 
     def start_tournament_bt_press(self):
+        """ Отвечает за работу __start_tournament_bt. Сворачивает данное окно, создает TournamentWindow."""
         self.master.withdraw()
         TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed, self.selected_game_number,
                          self.master)
 
     def game_speed_scale_select(self, val):
+        """ Отвечает за работу game_speed_scale. Присваивает selected_speed значение со шкалы."""
         self.selected_speed = int(float(val))
 
     def game_number_entry_on(self, val):
+        """ Отвечает за работу game_number_entry. Присваивает selected_game_number значение со шкалы."""
         self.selected_game_number = int(val)
 
     def game_listbox_select(self, val):
+        """ Отвечает за работу game_listbox. Присваивает __game_label_text имя выбранной игры.
+            Проверяет, достаточно ли данных для начала турнира."""
         sender = val.widget
         idx = sender.curselection()
         value = sender.get(idx)
@@ -382,23 +400,28 @@ class StartWindow(Frame):
         self.selected_game_name = self.__game_label_text.get()
         self.selected_game = self.games[self.selected_game_name]()
         if self.selected_game_name and len(self.selected_bots) > 1:
-            self.start_tournament_bt.configure(state="normal")
+            self.__start_tournament_bt.configure(state="normal")
         else:
-            self.start_tournament_bt.configure(state="disable")
+            self.__start_tournament_bt.configure(state="disable")
 
     def file_explorer_bt_press(self):
+        """ Отвечает за работу file_explorer_bt. Выводит имена выбранных ботов. Удаляет повторения.
+            Проверяет, достаточно ли данных для начала турнира."""
         paths = fd.askopenfilenames(title='Выберете файлы ботов', filetypes=[('*', '.py'), ('*', '.exe')])
+
         for path in paths:
             if path not in self.selected_bots:
                 self.selected_bots.append(path)
             else:
                 self.selected_bots.remove(path)
+
         s = 'Выбранные боты:\n' + '\n'.join([bot.split('/')[-1] for bot in sorted(self.selected_bots)])
-        self.selected_bots_text.configure(state='normal')
-        self.selected_bots_text.delete('1.0', END)
-        self.selected_bots_text.replace(0.0, 1.0, s)
-        self.selected_bots_text.configure(state='disabled')
+        self.__selected_bots_text.configure(state='normal')
+        self.__selected_bots_text.delete('1.0', END)
+        self.__selected_bots_text.replace(0.0, 1.0, s)
+        self.__selected_bots_text.configure(state='disabled')
+
         if self.selected_game_name and len(self.selected_bots) > 1:
-            self.start_tournament_bt.configure(state="normal")
+            self.__start_tournament_bt.configure(state="normal")
         else:
-            self.start_tournament_bt.configure(state="disable")
+            self.__start_tournament_bt.configure(state="disable")

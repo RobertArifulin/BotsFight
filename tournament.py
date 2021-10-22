@@ -45,10 +45,8 @@ class Tournament:
             Результат добовляет в tournament_results.
             После проведения всех игр возвращает результаты турнира - tournament_results.
 
-        display_game()
-            Выводит картинку игрового поля, которую предоставила игра.
-
-
+        create_text()
+            Создает описание происходящих в партии событий.
     """
     game: Game
     bots: list[Bot]
@@ -122,6 +120,9 @@ class Tournament:
         return image, res[0], res[1]
 
     def create_text(self, res: Status, pair: tuple[Bot, Bot]) -> tuple[str, str]:
+        """
+            Создает описание происходящих в партии событий.
+        """
         title = f"{pair[0].name} vs\n{pair[1].name}"
         if res == Status.bot1_won:
             status = f"Победа {pair[0].name}!"
