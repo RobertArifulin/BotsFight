@@ -1,5 +1,6 @@
 from game import Game, Status
 from bot import Bot
+from PIL import Image
 
 
 class Tournament:
@@ -79,42 +80,23 @@ class Tournament:
 
         return self.game.game_init()
 
-    def play(self, pair: tuple[Bot, Bot]) -> Status:
-        """ Проводит игру между двумя ботами.
-            Отрисовывает поле вызовом display_game().
-            Возвращает результат битвы."""
+    def turn(self, pair: tuple[Bot, Bot], status: Status) -> Status:
+        """
 
+        """
         bot1 = pair[0]
         bot2 = pair[1]
-        status = self.game.get_status()
 
-        print('start')
-        print(self.game.get_board_string())
-        print('-----------------------')
-
-        while status not in [Status.bot1_won, Status.bot2_won, Status.draw]:
+        if status not in [Status.bot1_won, Status.bot2_won, Status.draw]:
             if status == Status.bot1_next:
                 bot_turn = bot1.request_bot(self.game.get_board_string())
-                self.display_game(self.game.draw_board_image())
                 status = self.game.bot_made_turn(bot_turn)
-
-                print('after bot1')
-                print(self.game.get_board_string())
-                print('-----------------------')
+                return status
 
             elif status == Status.bot2_next:
                 bot_turn = bot2.request_bot(self.game.get_board_string())
-                self.display_game(self.game.draw_board_image())
                 status = self.game.bot_made_turn(bot_turn)
-
-                print('after bot2')
-                print(self.game.get_board_string())
-                print('-----------------------')
-
-        print('final')
-        print(self.game.get_board_string())
-        print('-----------------------')
-
+                return status
         return status
 
     def tournament(self):
@@ -122,19 +104,18 @@ class Tournament:
             Результат добовляет в tournament_results.
             После проведения всех игр возвращает результаты турнира - tournament_results.
         """
-
-        for pair in self.standings:
-            res = self.play(pair)
-            if res == Status.bot1_won:
-                self.tournament_results.append(f"{pair[0].name} won")
-            elif res == Status.bot1_won:
-                self.tournament_results.append(f"{pair[1].name} won")
-            else:
-                self.tournament_results.append(f"draw between {pair[0].name} and {pair[1].name}")
-        return self.tournament_results
-
-    def display_game(self, image):
-        """ Выводит картинку игрового поля, которую предоставила игра."""
-
-        pass
-
+        if len(self.tournament_results) == len(self.standings):
+            return None, False
+        pair = self.standings[len(self.tournament_results)]
+        res = self.turn(pair, self.game.get_status())
+        if res == Status.bot1_won:
+            self.tournament_results.append(f"{pair[0].name} won")
+            self.game.game_init()
+        elif res == Status.bot2_won:
+            self.tournament_results.append(f"{pair[1].name} won")
+            self.game.game_init()
+        elif res == Status.draw:
+            self.tournament_results.append(f"draw between {pair[0].name} and {pair[1].name}")
+            self.game.game_init()
+        image = self.game.draw_board_image()
+        return image, res

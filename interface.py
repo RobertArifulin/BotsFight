@@ -10,19 +10,27 @@ from bot import Bot
 
 class TournamentWindow(Frame):
     """
-    Check commit
+
     """
 
     def __init__(self, bots_paths: list[str], game: Game, speed: int, game_number: int, origin):
         super().__init__()
 
-        self.window = Toplevel()
+        self.window = Toplevel(background=BG_COLOR)
 
+        self.__status_label_text = StringVar()
         self.bots_paths = bots_paths
         self.game = game
+        self.game.game_init()
         self.speed = speed
         self.game_number = game_number
         self.origin = origin
+        self.is_paused = False
+
+        self.tournament = Tournament(self.game)
+        for bot_path in self.bots_paths:
+            self.tournament.register_bot(bot_path)
+        self.tournament.create_standings()
 
         self.create_ui()
 
@@ -37,29 +45,82 @@ class TournamentWindow(Frame):
         self.window.geometry(f'{W1_MIN_WIDTH}x{W1_MIN_HEIGHT}+{w}+{h}')
         self.window.title("Турнир Машин")
         self.pack(fill=BOTH, expand=True)
+        self.window.grid_columnconfigure(0, weight=1)
+        self.window.grid_rowconfigure(0, weight=1)
+        self.window.grid_columnconfigure(1, weight=1)
+        self.window.grid_rowconfigure(1, weight=1)
 
         # создание контейнера frame1
-        frame1 = Frame(self.window, background="red")
-        frame1.pack(expand=True)
+        frame1 = Frame(self.window, background=BG_COLOR)
+        frame1.grid(row=0, column=0, columnspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W + N)
+        self.window.grid_columnconfigure(0, weight=1)
+        self.window.grid_columnconfigure(1, weight=1)
+        self.window.grid_rowconfigure(1, weight=1)
 
-        button = Button(frame1, width=15, height=2, command=self.press,
-                             text="Скрыть", font="Times 16")
-        button.pack(padx=FRAME_PADX, pady=FRAME_PADY)
+        # тестовая кнопка выхода
+        close_bt = Button(frame1, width=12, height=1, command=self.close_bt_press,
+                          text="Отмена ", font="Times 16")
+        close_bt.grid(row=0, column=0, sticky=W + E + N, padx=GRID_PADX, pady=GRID_PADY)
+
+        # тестовая кнопка выхода
+        self.pause_bt = Button(frame1, width=12, height=1, command=self.pause_bt_press,
+                               text="Стоп", font="Times 16")
+        self.pause_bt.grid(row=0, column=1, sticky=W + E + N, padx=GRID_PADX, pady=GRID_PADY)
+
+        # ______________________________
+        # Блок 2
+        # создание контейнера frame2
+        frame2 = Frame(self.window, background=BG_COLOR)
+        frame2.grid(row=1, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=W + N + S + E)
+        frame2.grid_columnconfigure(0, weight=1)
+        frame2.grid_rowconfigure(0, weight=1)
+        frame2.grid_columnconfigure(1, weight=1)
+        frame2.grid_rowconfigure(1, weight=1)
+
+        status_label = Label(frame2, text=0, textvariable=self.__status_label_text, width=15,
+                             font=W2_FONT, background=BG_COLOR, anchor=CENTER)
+        status_label.grid(row=0, column=0, sticky=W + E + N, pady=5)
+
+        # ______________________________
+        # Блок 3
+        # создание контейнера frame3
+        frame3 = Frame(self.window, background=BG_COLOR)
+        frame3.grid(row=1, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=E + N + S + W)
+        frame3.grid_columnconfigure(0, weight=1)
+        frame3.grid_rowconfigure(0, weight=1)
+
+        self.board_canvas = Canvas(frame3, height=IMAGE_HEIGHT, width=IMAGE_WIDTH)
 
         # ______________________________
         # mainloop
-        self.master.mainloop()
+        self.window.after(10, self.display_game)
+        self.window.mainloop()
 
-    def press(self):
+    def close_bt_press(self):
         self.origin.deiconify()
-        tournament = Tournament(self.game)
-        for bot_path in self.bots_paths:
-            tournament.register_bot(bot_path)
-        tournament.create_standings()
-
-        results = tournament.tournament()
-        print(results)
         self.window.withdraw()
+
+    def pause_bt_press(self):
+        if self.is_paused:
+            self.is_paused = Falseы
+            self.window.after((10 - self.speed) * 50 + 10, self.display_game)
+            self.pause_bt.configure(text="Старт")
+        else:
+            self.is_paused = True
+            self.pause_bt.configure(text="Стоп")
+
+    def display_game(self):
+        image, res = self.tournament.tournament()
+        if res:
+            self.__status_label_text.set(res)
+            if int(IMAGE_HEIGHT / IMAGE_WIDTH * self.board_canvas.winfo_width()):
+                image = image.resize((self.board_canvas.winfo_width(),
+                                      int(IMAGE_HEIGHT / IMAGE_WIDTH * self.board_canvas.winfo_width())))
+            self.window.board = ImageTk.PhotoImage(image)
+            image = self.board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
+            self.board_canvas.pack(expand=True, fill=BOTH)
+        if not self.is_paused:
+            self.window.after((10 - self.speed) * 50 + 10, self.display_game)
 
 
 class StartWindow(Frame):
@@ -68,7 +129,7 @@ class StartWindow(Frame):
 
         Attributes
         ----------
-        all_games: list[str]
+        games: list[str]
             Список доступных для выбора имен игр.
         selected_game_name: str
             Имя игры, которую выбрали.
@@ -112,7 +173,7 @@ class StartWindow(Frame):
         self.games = games
         self.games_names = list(games.keys())
         self.selected_game_name = ""
-        self.selected_game = None
+        self.selected_game = Game()
         self.selected_bots = []
         self.selected_speed = 1
         self.selected_game_number = 1
@@ -219,6 +280,7 @@ class StartWindow(Frame):
                 '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
         game_number_entry = Entry(frame3, textvariable=self.__game_number_text, validatecommand=vcmd,
                                   validate='key', background=BG_COLOR, font=W1_FONT)
+
         game_number_entry.grid(row=1, column=3, columnspan=2, padx=GRID_PADX, pady=GRID_PADY)
 
         # ______________________________
@@ -275,6 +337,8 @@ class StartWindow(Frame):
         for path in paths:
             if path not in self.selected_bots:
                 self.selected_bots.append(path)
+            else:
+                self.selected_bots.remove(path)
         s = 'Выбранные боты:\n' + '\n'.join([bot.split('/')[-1] for bot in sorted(self.selected_bots)])
         self.selected_bots_text.configure(state='normal')
         self.selected_bots_text.delete('1.0', END)

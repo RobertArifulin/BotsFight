@@ -1,17 +1,23 @@
 from game import Game, Status
+from PIL import Image, ImageDraw, ImageFont
 
 
 class GameTest(Game):
 
     def __init__(self):
         super().__init__()
+        self.board = None
+
+    def game_init(self) -> str:
         self.board = [[0] * 5 for _ in range(5)]
+        self.status = Status.bot1_next
+        return self.get_board_string()
 
     def get_board_string(self) -> str:
-        res = ''
+        self.board_string = ''
         for line in self.board:
-            res += ' '.join([str(i) for i in line]) + '\n'
-        return res[:-1]
+            self.board_string += ' '.join([str(i) for i in line]) + '\n'
+        return self.board_string[:-1]
 
     def bot_made_turn(self, turn: str) -> Status:
         MAX = 20
@@ -38,3 +44,11 @@ class GameTest(Game):
         else:
             self.status = Status.bot1_next
             return self.status
+
+    def draw_board_image(self) -> Image:
+        image = Image.new('RGB', (400, 300), color=(255, 255, 255))
+        canvas = ImageDraw.Draw(image)
+        text = self.get_board_string()
+        font = ImageFont.truetype('C:/Windows/Fonts/Calibri.ttf', size=30)
+        canvas.text((10, 10), text, fill='#000000', font=font)
+        return image

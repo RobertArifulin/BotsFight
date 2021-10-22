@@ -51,20 +51,6 @@ def main():
     games = games_import()
     game_names = list(games.keys())
     start_window = StartWindow(games)
-    # start_window.master.mainloop()
-    # bots_paths = start_window.selected_bots
-    # game_name = start_window.selected_game_name
-    # speed = start_window.selected_speed
-    # game_number = start_window.selected_game_number
-
-    # game = games[game_name]()
-    # tournament = Tournament(game)
-    # for bot_path in bots_paths:
-    #     tournament.register_bot(bot_path)
-    #
-    # tournament.create_standings()
-    # results = tournament.tournament()
-    # print(results)
 
 
 if __name__ == '__main__':
