@@ -105,7 +105,7 @@ class Tournament:
             После проведения всех игр возвращает результаты турнира - tournament_results.
         """
         if len(self.tournament_results) == len(self.standings):
-            return None, False
+            return None, False, False
         pair = self.standings[len(self.tournament_results)]
         res = self.turn(pair, self.game.get_status())
         if res == Status.bot1_won:
@@ -118,4 +118,19 @@ class Tournament:
             self.tournament_results.append(f"draw between {pair[0].name} and {pair[1].name}")
             self.game.game_init()
         image = self.game.draw_board_image()
-        return image, res
+        res = self.create_text(res, pair)
+        return image, res[0], res[1]
+
+    def create_text(self, res: Status, pair: tuple[Bot, Bot]) -> tuple[str, str]:
+        title = f"{pair[0].name} vs\n{pair[1].name}"
+        if res == Status.bot1_won:
+            status = f"Победа {pair[0].name}!"
+        elif res == Status.bot2_won:
+            status = f"Победа {pair[1].name}!"
+        elif res == Status.draw:
+            status = f"Ничья между {pair[0].name} и {pair[1].name}!"
+        elif res == Status.bot1_next:
+            status = f"Ход {pair[0].name}"
+        else:
+            status = f"Ход {pair[1].name}"
+        return title, status
