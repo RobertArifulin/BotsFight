@@ -42,7 +42,7 @@ class Bot:
         """
 
         game_condition = bytearray(game_condition, encoding='utf-8')
-        if self.path.split('.')[-1] == 'py':
+        if self.path.split('.')[-1] in ['py', 'pyw']:
             res = subprocess.run([sys.executable, self.path], input=game_condition, capture_output=True, check=True)
         else:
             res = subprocess.run(self.path, input=game_condition, capture_output=True, check=True)

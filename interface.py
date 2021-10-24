@@ -264,7 +264,7 @@ class StartWindow(Frame):
         frame1.pack(fill=X)
 
         # создание надписи "Выберете игру"
-        request_game_label = Label(frame1, text="Выберете игру", width=15,
+        request_game_label = Label(frame1, text="Выберите игру", width=15,
                                    font=W1_FONT, background=BG_COLOR, anchor=W)
         request_game_label.pack(side=LEFT, padx=FRAME_PADX, pady=FRAME_PADY)
 
@@ -291,7 +291,7 @@ class StartWindow(Frame):
         frame2.pack(fill=X)
 
         # создание надписи "Выберете ботов"
-        request_bot_label = Label(frame2, text="Выберете ботов ", width=15,
+        request_bot_label = Label(frame2, text="Выберите ботов ", width=15,
                                   font=W1_FONT, background=BG_COLOR, anchor=W)
         request_bot_label.pack(side=LEFT, fill=X, padx=FRAME_PADX, pady=FRAME_PADY)
 
@@ -407,7 +407,8 @@ class StartWindow(Frame):
     def file_explorer_bt_press(self):
         """ Отвечает за работу file_explorer_bt. Выводит имена выбранных ботов. Удаляет повторения.
             Проверяет, достаточно ли данных для начала турнира."""
-        paths = fd.askopenfilenames(title='Выберете файлы ботов', filetypes=[('*', '.py'), ('*', '.exe')])
+        paths = fd.askopenfilenames(title='Выберете файлы ботов',
+                                    filetypes=[('*', '.py'), ('*', '.exe'), ('*', '.pyw')])
 
         for path in paths:
             if path not in self.selected_bots:

@@ -28,7 +28,7 @@ def games_import() -> dict:
 
 def test_tournament():
     bots_paths = []
-    path = fd.askopenfilenames(filetypes=[('*', '.py'), ('*', '.exe')])
+    path = fd.askopenfilenames(filetypes=[('*', '.py'), ('*', '.exe'), ('*', '.pyw')])
     bots_paths.extend(path)
     print(bots_paths)
 
