@@ -1,4 +1,5 @@
 from enum import Enum
+from PIL import Image
 
 
 class Status(Enum):
@@ -76,7 +77,7 @@ class Game:
 
         return self.status
 
-    def draw_board_image(self) -> None:
+    def draw_board_image(self) -> Image:
         """ Отрисовывает игру."""
 
-        return None
+        return Image
