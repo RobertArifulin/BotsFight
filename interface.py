@@ -243,6 +243,8 @@ class StartWindow(Frame):
         self.selected_speed = 1
         self.selected_game_number = 1
 
+        self.TournametWindow = None
+
         self.create_ui()
 
     def create_ui(self):
@@ -379,7 +381,9 @@ class StartWindow(Frame):
     def start_tournament_bt_press(self):
         """ Отвечает за работу __start_tournament_bt. Сворачивает данное окно, создает TournamentWindow."""
         self.master.withdraw()
-        TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed, self.selected_game_number,
+        if self.TournametWindow is not None:
+            self.TournametWindow.destroy()
+        self.TournametWindow = TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed, self.selected_game_number,
                          self.master)
 
     def game_speed_scale_select(self, val):
