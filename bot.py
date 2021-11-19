@@ -43,8 +43,19 @@ class Bot:
 
         game_condition = bytearray(game_condition, encoding='utf-8')
         if self.path.split('.')[-1] in ['py', 'pyw']:
-            res = subprocess.run([sys.executable, self.path], input=game_condition, capture_output=True, check=True)
+            try:
+                bot_response = subprocess.run([sys.executable, self.path], input=game_condition,
+                                              capture_output=True, check=True, timeout=1)
+            except subprocess.TimeoutExpired:
+                bot_response = "timeout"
+
         else:
-            res = subprocess.run(self.path, input=game_condition, capture_output=True, check=True)
-        bot_response = res.stdout.decode("utf-8")
+            try:
+                bot_response = subprocess.run(self.path, input=game_condition, capture_output=True,
+                                              check=True, timeout=1)
+            except subprocess.TimeoutExpired:
+                bot_response = "timeout"
+
+        if bot_response != "timeout":
+            bot_response = bot_response.stdout.decode("utf-8")
         return bot_response

@@ -88,12 +88,18 @@ class Tournament:
         if status not in [Status.bot1_won, Status.bot2_won, Status.draw]:
             if status == Status.bot1_next:
                 bot_turn = bot1.request_bot(self.game.get_board_string())
-                status = self.game.bot_made_turn(bot_turn)
+                if bot_turn == "timeout":
+                    status = Status.bot2_won
+                else:
+                    status = self.game.bot_made_turn(bot_turn)
                 return status
 
             elif status == Status.bot2_next:
                 bot_turn = bot2.request_bot(self.game.get_board_string())
-                status = self.game.bot_made_turn(bot_turn)
+                if bot_turn == "timeout":
+                    status = Status.bot1_won
+                else:
+                    status = self.game.bot_made_turn(bot_turn)
                 return status
         return status
 

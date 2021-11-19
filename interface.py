@@ -91,72 +91,95 @@ class TournamentWindow(Frame):
             self.window.grid_rowconfigure(i, weight=1)
 
         # создание контейнера frame1
-        frame1 = Frame(self.window, background=BG_COLOR)
-        frame1.grid(row=0, column=0, columnspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W + N + S)
+        self.frame1 = Frame(self.window, background=BG_COLOR)
+        self.frame1.grid(row=0, column=0, columnspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W + N + S)
         for i in range(2):
-            frame1.grid_columnconfigure(i, weight=1)
-            frame1.grid_rowconfigure(i, weight=1)
+            self.frame1.grid_columnconfigure(i, weight=1)
+            self.frame1.grid_rowconfigure(i, weight=1)
 
         # тестовая кнопка выхода
-        close_bt = Button(frame1, width=12, height=1, command=self.close_bt_press,
+        close_bt = Button(self.frame1, width=12, height=1, command=self.close_bt_press,
                           text="Отмена ", font="Times 16")
         close_bt.grid(row=0, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # тестовая кнопка выхода
-        self.__pause_bt = Button(frame1, width=12, height=1, command=self.pause_bt_press,
+        self.__pause_bt = Button(self.frame1, width=12, height=1, command=self.pause_bt_press,
                                  text="Стоп", font="Times 16")
         self.__pause_bt.grid(row=0, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание шкалы скорости
-        game_speed_scale = Scale(frame1, from_=1, to=10, orient=HORIZONTAL, font=W1_FONT,
+        game_speed_scale = Scale(self.frame1, from_=1, to=10, orient=HORIZONTAL, font=W1_FONT,
                                  command=self.game_speed_scale_select, background=BG_COLOR)
         game_speed_scale.set(self.game_speed)
         game_speed_scale.grid(row=0, column=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание поля с текстом для имен выбранных ботов
-        game_speed_label = Label(frame1, text="Скорость игры",
+        game_speed_label = Label(self.frame1, text="Скорость игры",
                                  font=W1_FONT, background=BG_COLOR, anchor=CENTER)
         game_speed_label.grid(row=1, column=2, padx=GRID_PADX, sticky=E + W + N)
 
         # ______________________________
         # Блок 2
         # создание контейнера frame2
-        frame2 = Frame(self.window, background=BG_COLOR)
-        frame2.grid(row=1, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=W + N + S + E)
+        self.frame2 = Frame(self.window, background=BG_COLOR)
+        self.frame2.grid(row=1, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=W + N + S + E)
         for i in range(3):
-            frame2.grid_columnconfigure(i, weight=1)
-            frame2.grid_rowconfigure(i, weight=1)
+            self.frame2.grid_columnconfigure(i, weight=1)
+            self.frame2.grid_rowconfigure(i, weight=1)
 
         # вывод заголовка игры
-        game_title_label = Label(frame2, text=0, textvariable=self.__game_title_var, width=15,
+        game_title_label = Label(self.frame2, text=0, textvariable=self.__game_title_var, width=15,
                              font=W2_FONT, background=BG_COLOR, anchor=CENTER)
         game_title_label.grid(row=0, column=0, sticky=W + E, pady=5)
 
         # вывод статуса игры
-        status_label = Label(frame2, text=0, textvariable=self.__status_label_var, width=15,
+        status_label = Label(self.frame2, text=0, textvariable=self.__status_label_var, width=15,
                              font=W2_FONT, background=BG_COLOR, anchor=CENTER)
         status_label.grid(row=1, column=0, sticky=W + E, pady=5)
 
         # ______________________________
         # Блок 3
         # создание контейнера frame3
-        frame3 = Frame(self.window, background=BG_COLOR)
-        frame3.grid(row=1, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=E + N + S + W)
+        self.frame3 = Frame(self.window, background=BG_COLOR)
+        self.frame3.grid(row=1, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=E + N + S + W)
         for i in range(3):
-            frame3.grid_columnconfigure(i, weight=1)
-            frame3.grid_rowconfigure(i, weight=1)
+            self.frame3.grid_columnconfigure(i, weight=1)
+            self.frame3.grid_rowconfigure(i, weight=1)
 
-        self.__board_canvas = Canvas(frame3, height=IMAGE_HEIGHT, width=IMAGE_WIDTH)
+        self.__board_canvas = Canvas(self.frame3, height=IMAGE_HEIGHT, width=IMAGE_WIDTH)
 
         # ______________________________
         # mainloop
         self.window.after(10, self.display_game)
         self.window.mainloop()
 
+    def display_tournament_results(self):
+        # создание контейнера frame1
+        self.frame1 = Frame(self.window, background=BG_COLOR)
+        self.frame1.grid(row=0, column=0, columnspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W + N + S)
+        for i in range(2):
+            self.frame1.grid_columnconfigure(i, weight=1)
+            self.frame1.grid_rowconfigure(i, weight=1)
+
+        # тестовая кнопка выхода
+        close_bt = Button(self.frame1, width=12, height=1, command=self.close_bt_press,
+                          text="Отмена ", font="Times 16")
+        close_bt.grid(row=0, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
+        # создание поля с текстом для имен выбранных ботов
+        game_speed_label = Label(self.frame1, text="Результаты Турнира:",
+                                 font=W1_FONT, background=BG_COLOR, anchor=CENTER)
+        game_speed_label.grid(row=0, column=1, padx=GRID_PADX, sticky=E + W)
+
     def close_bt_press(self):
         """ Отвечает за работу close_bt. Сворачивает данное окно и разворачивает StartWindow"""
         self.origin.deiconify()
         self.window.withdraw()
+
+    def clear_ui(self):
+        self.frame1.destroy()
+        self.frame2.destroy()
+        self.frame3.destroy()
+        self.display_tournament_results()
 
     def pause_bt_press(self):
         """ Отвечает за работу __pause_bt. Останавливает/запускает игру."""
@@ -185,8 +208,11 @@ class TournamentWindow(Frame):
             self.window.board = ImageTk.PhotoImage(image)
             image = self.__board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
             self.__board_canvas.pack(expand=True, fill=BOTH)
-        if not self.is_paused:
-            self.window.after((10 - self.game_speed) * 50 + 10, self.display_game)
+            if not self.is_paused:
+                self.window.after((10 - self.game_speed) * 50 + 20, self.display_game)
+        else:
+            self.pause_bt_press()
+            self.clear_ui()
 
 
 class StartWindow(Frame):
@@ -243,7 +269,7 @@ class StartWindow(Frame):
         self.selected_speed = 1
         self.selected_game_number = 1
 
-        self.TournametWindow = None
+        self.TournamentWindow = None
 
         self.create_ui()
 
@@ -301,7 +327,6 @@ class StartWindow(Frame):
         image = Image.open('images/Windows_Explorer_Icon.png')
         image = image.resize((30, 30))
         self.master.win_explorer = ImageTk.PhotoImage(image)
-
         # создание кнопки вызова проводника
         file_explorer_bt = Button(frame2, command=self.file_explorer_bt_press,
                                   image=self.master.win_explorer)
@@ -381,10 +406,10 @@ class StartWindow(Frame):
     def start_tournament_bt_press(self):
         """ Отвечает за работу __start_tournament_bt. Сворачивает данное окно, создает TournamentWindow."""
         self.master.withdraw()
-        if self.TournametWindow is not None:
-            self.TournametWindow.destroy()
-        self.TournametWindow = TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed, self.selected_game_number,
-                         self.master)
+        if self.TournamentWindow is not None:
+            self.TournamentWindow.destroy()
+        self.TournamentWindow = TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed, self.selected_game_number,
+                                                 self.master)
 
     def game_speed_scale_select(self, val):
         """ Отвечает за работу game_speed_scale. Присваивает selected_speed значение со шкалы."""
