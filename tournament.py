@@ -113,13 +113,13 @@ class Tournament:
         pair = self.standings[len(self.tournament_results)]
         res = self.turn(pair, self.game.get_status())
         if res == Status.bot1_won:
-            self.tournament_results.append(f"{pair[0].name} won")
+            self.tournament_results.append(f"{pair[0].name} defeated {pair[1].name}")
             self.game.game_init()
         elif res == Status.bot2_won:
-            self.tournament_results.append(f"{pair[1].name} won")
+            self.tournament_results.append(f"{pair[1].name} defeated {pair[0].name}")
             self.game.game_init()
         elif res == Status.draw:
-            self.tournament_results.append(f"draw between {pair[0].name} and {pair[1].name}")
+            self.tournament_results.append(f"{pair[0].name} draw {pair[1].name}")
             self.game.game_init()
         image = self.game.draw_board_image()
         res = self.create_text(res, pair)

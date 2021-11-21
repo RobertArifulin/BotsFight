@@ -1,11 +1,10 @@
 from tkinter import *
 from tkinter import filedialog as fd
+from tkinter import scrolledtext
 from constants import *
 from PIL import ImageTk, Image
-import time
 from game import Game, Status
 from tournament import Tournament
-from bot import Bot
 
 
 class TournamentWindow(Frame):
@@ -155,20 +154,100 @@ class TournamentWindow(Frame):
 
     def display_tournament_results(self):
         # создание контейнера frame1
+        w = self.window.winfo_screenwidth() // 2
+        h = self.window.winfo_screenheight() // 2
+        w = w - W1_MIN_WIDTH // 2
+        h = h - W1_MIN_HEIGHT // 2
+
         self.frame1 = Frame(self.window, background=BG_COLOR)
-        self.frame1.grid(row=0, column=0, columnspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W + N + S)
+        self.frame1.pack(fill=X, padx=GRID_PADX, pady=GRID_PADY, expand=True)
         for i in range(2):
             self.frame1.grid_columnconfigure(i, weight=1)
             self.frame1.grid_rowconfigure(i, weight=1)
 
         # тестовая кнопка выхода
         close_bt = Button(self.frame1, width=12, height=1, command=self.close_bt_press,
-                          text="Отмена ", font="Times 16")
+                          text="Назад", font="Times 16")
         close_bt.grid(row=0, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
         # создание поля с текстом для имен выбранных ботов
         game_speed_label = Label(self.frame1, text="Результаты Турнира:",
-                                 font=W1_FONT, background=BG_COLOR, anchor=CENTER)
+                                 font=W2_FONT, background=BG_COLOR, anchor=CENTER)
         game_speed_label.grid(row=0, column=1, padx=GRID_PADX, sticky=E + W)
+
+        self.frame2 = Frame(self.window, background=BG_COLOR)
+        self.frame2.pack(fill=BOTH, expand=True, padx=GRID_PADX, pady=GRID_PADY)
+
+        results_text = scrolledtext.ScrolledText(self.frame2, font=W2_FONT)
+        results_text.insert(INSERT, self.create_results_text(self.tournament.tournament_results))
+        results_text.pack(side=LEFT, expand=True)
+
+        results_scroll = Scrollbar(self.frame2, command=results_text.yview)
+        results_scroll.pack(side=RIGHT, fill=Y, padx=FRAME_PADX, pady=FRAME_PADY)
+        results_text.configure(state='disabled', yscrollcommand=results_scroll.set)
+
+    def create_results_text(self, results: list) -> str:
+        s = ""
+        bots_res = {}
+        for bot in self.tournament.bots:
+            name = bot.name
+            bots_res.update({name: [[], [], []]})
+        for result in results:
+            bot1, res, bot2 = result.split()
+            if res == "draw":
+                bots_res[bot1][1].append(bot2)
+                bots_res[bot2][1].append(bot1)
+            else:
+                bots_res[bot1][0].append(bot2)
+                bots_res[bot2][2].append(bot1)
+        best_bots = ['', -1]
+        worst_bots = ['', -1]
+        for bot in self.tournament.bots:
+            name = bot.name
+
+            if len(bots_res[name][0]) % 10 in [2, 3, 4]:
+                s += f"Бот {bot.name} победил {len(bots_res[name][0])} раза:\n"
+            else:
+                s += f"Бот {bot.name} победил {len(bots_res[name][0])} раз:\n"
+            for i in bots_res[name][0]:
+                s += f"{i}; "
+            s = s[:-2]
+            s += "\n"
+
+            if len(bots_res[name][0]) > best_bots[1]:
+                best_bots[0] = f"{name}\n"
+                best_bots[1] = len(bots_res[name][0])
+            elif len(bots_res[name][0]) == best_bots[1]:
+                best_bots[0] += f"{name}\n"
+
+            if len(bots_res[name][1]) % 10 in [2, 3, 4]:
+                s += f"Сыграл вничью {len(bots_res[name][1])} раза:\n"
+            else:
+                s += f"Сыграл вничью {len(bots_res[name][1])} раз:\n"
+            for i in bots_res[name][1]:
+                s += f"{i}; "
+            s = s[:-2]
+            s += "\n"
+
+            if len(bots_res[name][2]) % 10 in [2, 3, 4]:
+                s += f"Проиграл {len(bots_res[name][2])} раза:\n"
+            else:
+                s += f"Проиграл {len(bots_res[name][2])} раз:\n"
+            for i in bots_res[name][2]:
+                s += f"{i}; "
+
+            if len(bots_res[name][2]) > worst_bots[1]:
+                worst_bots[0] = f"{name}\n"
+                worst_bots[1] = len(bots_res[name][2])
+            elif len(bots_res[name][2]) == worst_bots[1]:
+                worst_bots[0] += f"{name}\n"
+
+            s = s[:-2]
+            s += '\n--------------------------------------------------------------------------\n'
+        best_bots[0] = best_bots[0]
+        worst_bots[0] = worst_bots[0][:-1]
+        s += f"Лучшие боты с наибольшим количеством побед - {best_bots[1]}:\n{best_bots[0]}\n"
+        s += f"Худшие боты с наибольшим количеством поражений - {worst_bots[1]}:\n{worst_bots[0]}"
+        return s
 
     def close_bt_press(self):
         """ Отвечает за работу close_bt. Сворачивает данное окно и разворачивает StartWindow"""
@@ -422,16 +501,19 @@ class StartWindow(Frame):
     def game_listbox_select(self, val):
         """ Отвечает за работу game_listbox. Присваивает __game_label_text имя выбранной игры.
             Проверяет, достаточно ли данных для начала турнира."""
-        sender = val.widget
-        idx = sender.curselection()
-        value = sender.get(idx)
-        self.__game_label_text.set(value)
-        self.selected_game_name = self.__game_label_text.get()
-        self.selected_game = self.games[self.selected_game_name]()
-        if self.selected_game_name and len(self.selected_bots) > 1:
-            self.__start_tournament_bt.configure(state="normal")
-        else:
-            self.__start_tournament_bt.configure(state="disable")
+        try:
+            sender = val.widget
+            idx = sender.curselection()
+            value = sender.get(idx)
+            self.__game_label_text.set(value)
+            self.selected_game_name = self.__game_label_text.get()
+            self.selected_game = self.games[self.selected_game_name]()
+            if self.selected_game_name and len(self.selected_bots) > 1:
+                self.__start_tournament_bt.configure(state="normal")
+            else:
+                self.__start_tournament_bt.configure(state="disable")
+        except TclError:
+            pass
 
     def file_explorer_bt_press(self):
         """ Отвечает за работу file_explorer_bt. Выводит имена выбранных ботов. Удаляет повторения.
