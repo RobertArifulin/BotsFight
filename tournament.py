@@ -1,3 +1,5 @@
+import time
+
 from game import Game, Status
 from bot import Bot
 from PIL import Image
@@ -109,6 +111,7 @@ class Tournament:
             После проведения всех игр возвращает результаты турнира - tournament_results.
         """
         if len(self.tournament_results) == len(self.standings):
+            time.sleep(5)
             return None, False, False
         pair = self.standings[len(self.tournament_results)]
         res = self.turn(pair, self.game.get_status())

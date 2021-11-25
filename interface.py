@@ -1,3 +1,4 @@
+import time
 from tkinter import *
 from tkinter import filedialog as fd
 from tkinter import scrolledtext
@@ -145,7 +146,7 @@ class TournamentWindow(Frame):
             self.frame3.grid_columnconfigure(i, weight=1)
             self.frame3.grid_rowconfigure(i, weight=1)
 
-        self.__board_canvas = Canvas(self.frame3, height=IMAGE_HEIGHT, width=IMAGE_WIDTH)
+        self.__board_canvas = Canvas(self.frame3, height=400, width=300)
 
         # ______________________________
         # mainloop
@@ -280,9 +281,11 @@ class TournamentWindow(Frame):
         if res:
             self.__status_label_var.set(res)
             self.__game_title_var.set(title)
-            if int(IMAGE_HEIGHT / IMAGE_WIDTH * self.__board_canvas.winfo_width()):
+            height = image.height
+            width = image.width
+            if int(height / width * self.__board_canvas.winfo_width()):
                 image = image.resize((self.__board_canvas.winfo_width(),
-                                      min(int(IMAGE_HEIGHT / IMAGE_WIDTH * self.__board_canvas.winfo_width()),
+                                      min(int(height / width * self.__board_canvas.winfo_width()),
                                           self.__board_canvas.winfo_height())))
             self.window.board = ImageTk.PhotoImage(image)
             image = self.__board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
