@@ -1,4 +1,5 @@
 import time
+import tkinter
 from tkinter import *
 from tkinter import filedialog as fd
 from tkinter import scrolledtext
@@ -263,13 +264,16 @@ class TournamentWindow(Frame):
 
     def pause_bt_press(self):
         """ Отвечает за работу __pause_bt. Останавливает/запускает игру."""
-        if self.is_paused:
-            self.is_paused = False
-            self.__pause_bt.configure(text="Стоп")
-            self.window.after((10 - self.game_speed) * 50 + 10, self.display_game)
-        else:
-            self.is_paused = True
-            self.__pause_bt.configure(text="Старт")
+        try:
+            if self.is_paused:
+                self.is_paused = False
+                self.__pause_bt.configure(text="Стоп")
+                self.window.after((10 - self.game_speed) * 50 + 10, self.display_game)
+            else:
+                self.is_paused = True
+                self.__pause_bt.configure(text="Старт")
+        except tkinter.TclError:
+            pass
 
     def game_speed_scale_select(self, val):
         """ Отвечает за работу game_speed_scale. Присваивает selected_speed значение со шкалы."""
@@ -450,12 +454,9 @@ class StartWindow(Frame):
                                  command=self.game_speed_scale_select, background=BG_COLOR)
         game_speed_scale.grid(row=1, column=0, columnspan=2, padx=GRID_PADX, pady=GRID_PADY)
 
-        # создание поля ввода для кол-ва партий
-        vcmd = (self.master.register(self.number_game_validate),
-                '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
-        game_number_entry = Entry(frame3, textvariable=self.__game_number_text, validatecommand=vcmd,
-                                  validate='key', background=BG_COLOR, font=W1_FONT)
-
+        # создание шкалы кол-ва игр
+        game_number_entry = Scale(frame3, from_=1, to=10, orient=HORIZONTAL, font=W1_FONT,
+                                  command=self.game_number_scale_select, background=BG_COLOR)
         game_number_entry.grid(row=1, column=3, columnspan=2, padx=GRID_PADX, pady=GRID_PADY)
 
         # ______________________________
@@ -473,18 +474,6 @@ class StartWindow(Frame):
         # mainloop
         self.master.mainloop()
 
-    def number_game_validate(self, action, index, value_if_allowed, prior_value,
-                             text, validation_type, trigger_type, widget_name):
-        """ Отвечает за работу game_listbox. Не дает вписать некорректное значение."""
-        if value_if_allowed:
-            try:
-                a = int(value_if_allowed)
-                self.selected_game_number = a
-                return True
-            except ValueError:
-                return False
-        return False
-
     def start_tournament_bt_press(self):
         """ Отвечает за работу __start_tournament_bt. Сворачивает данное окно, создает TournamentWindow."""
         self.master.withdraw()
@@ -495,9 +484,9 @@ class StartWindow(Frame):
 
     def game_speed_scale_select(self, val):
         """ Отвечает за работу game_speed_scale. Присваивает selected_speed значение со шкалы."""
-        self.selected_speed = int(float(val))
+        self.selected_speed = int(val)
 
-    def game_number_entry_on(self, val):
+    def game_number_scale_select(self, val):
         """ Отвечает за работу game_number_entry. Присваивает selected_game_number значение со шкалы."""
         self.selected_game_number = int(val)
 

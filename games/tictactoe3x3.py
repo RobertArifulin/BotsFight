@@ -8,8 +8,10 @@ class TicTacToe3x3(Game):
     def __init__(self):
         super().__init__()
         self.board = None
+        self.win_cords = []
 
     def game_init(self) -> str:
+        self.win_cords = []
         self.board = [[0] * 3 for _ in range(3)]
         self.status = Status.bot1_next
         return self.get_board_string()
@@ -38,21 +40,33 @@ class TicTacToe3x3(Game):
         for i in range(3):
             if all(list(map(lambda x: x == 1, self.board[i]))):
                 self.status = Status.bot1_won
+                self.win_cords = [(0, i * 140 + 70), (3 * 140, i * 140 + 70)]
                 return self.status
             if all(list(map(lambda x: x == 2, self.board[i]))):
                 self.status = Status.bot2_won
+                self.win_cords = [(0, i * 140 + 70), (3 * 140, i * 140 + 70)]
                 return self.status
             if all(list(map(lambda x: x == 1, columns[i]))):
                 self.status = Status.bot1_won
+                self.win_cords = [(i * 140 + 70, 0), (i * 140 + 70, 3 * 140)]
                 return self.status
             if all(list(map(lambda x: x == 2, columns[i]))):
                 self.status = Status.bot2_won
+                self.win_cords = [(i * 140 + 70, 0), (i * 140 + 70, 3 * 140)]
                 return self.status
             if all(list(map(lambda x: x == 1, diagonals[i % 2]))):
                 self.status = Status.bot1_won
+                if i % 2:
+                    self.win_cords = [(3 * 140, 0), (0, 3 * 140)]
+                else:
+                    self.win_cords = [(0, 0), (3 * 140, 3 * 140)]
                 return self.status
             if all(list(map(lambda x: x == 2, diagonals[i % 2]))):
                 self.status = Status.bot2_won
+                if i % 2:
+                    self.win_cords = [(3 * 140, 0), (0, 3 * 140)]
+                else:
+                    self.win_cords = [(0, 0), (3 * 140, 3 * 140)]
                 return self.status
         if all(list(map(lambda x: all(x), self.board))):
             self.status = Status.draw
@@ -79,5 +93,9 @@ class TicTacToe3x3(Game):
                 elif self.board[j][i] == 1:
                     canvas.line([5 + delta_x, 5 + delta_y, 135 + delta_x, 135 + delta_y], width=3, fill=BLACK)
                     canvas.line([5 + delta_x, 135 + delta_y, 135 + delta_x, 5 + delta_y], width=3, fill=BLACK)
+        if self.win_cords:
+            x1, y1 = self.win_cords[0]
+            x2, y2 = self.win_cords[1]
+            canvas.line([x1, y1, x2, y2], width=4, fill=RED)
         return image
 

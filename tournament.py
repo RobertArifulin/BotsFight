@@ -111,10 +111,11 @@ class Tournament:
             После проведения всех игр возвращает результаты турнира - tournament_results.
         """
         if len(self.tournament_results) == len(self.standings):
-            time.sleep(5)
-            return None, False, False
+            image = self.game.draw_board_image()
+            return image, False, False
         pair = self.standings[len(self.tournament_results)]
         res = self.turn(pair, self.game.get_status())
+        image = self.game.draw_board_image()
         if res == Status.bot1_won:
             self.tournament_results.append(f"{pair[0].name} defeated {pair[1].name}")
             self.game.game_init()
@@ -124,7 +125,6 @@ class Tournament:
         elif res == Status.draw:
             self.tournament_results.append(f"{pair[0].name} draw {pair[1].name}")
             self.game.game_init()
-        image = self.game.draw_board_image()
         res = self.create_text(res, pair)
         return image, res[0], res[1]
 
