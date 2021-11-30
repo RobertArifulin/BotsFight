@@ -201,8 +201,8 @@ class TournamentWindow(Frame):
             else:
                 bots_res[bot1][0].append(bot2)
                 bots_res[bot2][2].append(bot1)
-        best_bots = ['', -1]
-        worst_bots = ['', -1]
+        best_bots = ['', 0]
+        worst_bots = ['', 0]
         for bot in self.tournament.bots:
             name = bot.name
 
