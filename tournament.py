@@ -1,5 +1,5 @@
 import time
-
+import copy
 from game import Game, Status
 from bot import Bot
 from PIL import Image
@@ -21,7 +21,8 @@ class Tournament:
             Турнирная таблица - просто попарный список ботов, где каждый сыгрет с каждым.
         tournament_results: list
             Результаты турнира.
-
+        game_number: int
+            Количество партий между 2 ботами.
 
 
         Methods
@@ -55,12 +56,14 @@ class Tournament:
     standings: list[tuple[Bot, Bot]]
     tournament_results: list
     pair: tuple[Bot, Bot]
+    game_number: int
 
-    def __init__(self, game: Game):
+    def __init__(self, game: Game, game_number: int):
         self.game = game
         self.bots = []
         self.standings = []
         self.tournament_results = []
+        self.game_number = game_number
 
     def register_bot(self, path: str):
         """ Добовляет бота в bots по пути его path.
@@ -73,7 +76,11 @@ class Tournament:
 
         for i, bot1 in enumerate(self.bots[:-1]):
             for j, bot2 in enumerate(self.bots[i + 1:]):
-                self.standings.append((bot1, bot2))
+                for n in range(self.game_number):
+                    if not n % 2:
+                        self.standings.append((copy.copy(bot1), copy.copy(bot2)))
+                    else:
+                        self.standings.append((copy.copy(bot2), copy.copy(bot1)))
 
     def game_init(self) -> str:
         """ Вызывает функцию game_init() у game."""

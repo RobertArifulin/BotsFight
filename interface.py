@@ -64,7 +64,7 @@ class TournamentWindow(Frame):
         self.origin = origin
         self.is_paused = False
 
-        self.tournament = Tournament(self.game)
+        self.tournament = Tournament(self.game, self.game_number)
         for bot_path in self.bots_paths:
             self.tournament.register_bot(bot_path)
         self.tournament.create_standings()
@@ -81,10 +81,10 @@ class TournamentWindow(Frame):
         # задаются параметры окна
         w = self.window.winfo_screenwidth() // 2
         h = self.window.winfo_screenheight() // 2
-        w = w - W1_MIN_WIDTH // 2
-        h = h - W1_MIN_HEIGHT // 2
+        w = w - W2_MIN_WIDTH // 2
+        h = h - W2_MIN_HEIGHT // 2
         self.window.minsize(W2_MIN_WIDTH, W2_MIN_HEIGHT)
-        self.window.geometry(f'{W1_MIN_WIDTH}x{W1_MIN_HEIGHT}+{w}+{h}')
+        self.window.geometry(f'{W2_MIN_WIDTH}x{W2_MIN_HEIGHT}+{w}+{h}')
         self.window.title("Турнир Машин")
         self.pack(expand=True, fill=BOTH)
         for i in range(2):
@@ -156,10 +156,8 @@ class TournamentWindow(Frame):
 
     def display_tournament_results(self):
         # создание контейнера frame1
-        w = self.window.winfo_screenwidth() // 2
-        h = self.window.winfo_screenheight() // 2
-        w = w - W1_MIN_WIDTH // 2
-        h = h - W1_MIN_HEIGHT // 2
+        for i in self.window.winfo_children():
+            i.destroy()
 
         self.frame1 = Frame(self.window, background=BG_COLOR)
         self.frame1.pack(fill=X, padx=GRID_PADX, pady=GRID_PADY, expand=True)
@@ -210,8 +208,17 @@ class TournamentWindow(Frame):
                 s += f"Бот {bot.name} победил {len(bots_res[name][0])} раза:\n"
             else:
                 s += f"Бот {bot.name} победил {len(bots_res[name][0])} раз:\n"
+
+            set_names = []
             for i in bots_res[name][0]:
-                s += f"{i}; "
+                if i not in set_names:
+                    set_names.append(i)
+            res = dict.fromkeys(set_names, 0)
+            while len(set_names):
+                key = set_names.pop()
+                res[key] = bots_res[name][0].count(key)
+            for i in res.keys():
+                s += f"{i}: {res[i]}; "
             s = s[:-2]
             s += "\n"
 
@@ -225,8 +232,17 @@ class TournamentWindow(Frame):
                 s += f"Сыграл вничью {len(bots_res[name][1])} раза:\n"
             else:
                 s += f"Сыграл вничью {len(bots_res[name][1])} раз:\n"
+
+            set_names = []
             for i in bots_res[name][1]:
-                s += f"{i}; "
+                if i not in set_names:
+                    set_names.append(i)
+            res = dict.fromkeys(set_names, 0)
+            while len(set_names):
+                key = set_names.pop()
+                res[key] = bots_res[name][1].count(key)
+            for i in res.keys():
+                s += f"{i}: {res[i]}; "
             s = s[:-2]
             s += "\n"
 
@@ -234,8 +250,17 @@ class TournamentWindow(Frame):
                 s += f"Проиграл {len(bots_res[name][2])} раза:\n"
             else:
                 s += f"Проиграл {len(bots_res[name][2])} раз:\n"
+
+            set_names = []
             for i in bots_res[name][2]:
-                s += f"{i}; "
+                if i not in set_names:
+                    set_names.append(i)
+            res = dict.fromkeys(set_names, 0)
+            while len(set_names):
+                key = set_names.pop()
+                res[key] = bots_res[name][2].count(key)
+            for i in res.keys():
+                s += f"{i}: {res[i]}; "
 
             if len(bots_res[name][2]) > worst_bots[1]:
                 worst_bots[0] = f"{name}\n"
@@ -247,6 +272,7 @@ class TournamentWindow(Frame):
             s += '\n--------------------------------------------------------------------------\n'
         best_bots[0] = best_bots[0]
         worst_bots[0] = worst_bots[0][:-1]
+
         s += f"Лучшие боты с наибольшим количеством побед - {best_bots[1]}:\n{best_bots[0]}\n"
         s += f"Худшие боты с наибольшим количеством поражений - {worst_bots[1]}:\n{worst_bots[0]}"
         return s
@@ -257,9 +283,8 @@ class TournamentWindow(Frame):
         self.window.withdraw()
 
     def clear_ui(self):
-        self.frame1.destroy()
-        self.frame2.destroy()
-        self.frame3.destroy()
+        for i in self.window.winfo_children():
+            i.destroy()
         self.display_tournament_results()
 
     def pause_bt_press(self):
@@ -301,7 +326,7 @@ class TournamentWindow(Frame):
             self.clear_ui()
 
 
-class StartWindow(Frame):
+class StartWindow(Tk):
     """ Класс StartWindow - основное окно интерфейса, оно рисует начальное окно
         и обеспечивает взаимодействие с бэкендом.
 
@@ -339,7 +364,7 @@ class StartWindow(Frame):
     selected_game_number: int
 
     def __init__(self, games: dict):
-        super().__init__(background=BG_COLOR)
+        super().__init__()
 
         self.__game_label_text = StringVar()
         self.__bot_label_text = StringVar()
@@ -364,36 +389,36 @@ class StartWindow(Frame):
 
         # Блок 1
         # задаются параметры окна
-        w = self.master.winfo_screenwidth() // 2
-        h = self.master.winfo_screenheight() // 2
+        w = self.winfo_screenwidth() // 2
+        h = self.winfo_screenheight() // 2
         w = w - W1_MIN_WIDTH // 2
         h = h - W1_MIN_HEIGHT // 2
-        self.master.minsize(W1_MIN_WIDTH, W1_MIN_HEIGHT)
-        self.master.geometry(f'{W1_MIN_WIDTH}x{W1_MIN_HEIGHT}+{w}+{h}')
-        self.master.title("Турнир Машин")
-        self.pack(fill=BOTH, expand=True)
+        self.minsize(W1_MIN_WIDTH, W1_MIN_HEIGHT)
+        self.geometry(f'{W1_MIN_WIDTH}x{W1_MIN_HEIGHT}+{w}+{h}')
+        self.title("Турнир Машин")
+        # self.pack(fill=BOTH, expand=True)
 
         # создание контейнера frame1
-        frame1 = Frame(self, background=BG_COLOR)
-        frame1.pack(fill=X)
+        self.frame1 = Frame(self, background=BG_COLOR)
+        self.frame1.pack(fill=X)
 
         # создание надписи "Выберете игру"
-        request_game_label = Label(frame1, text="Выберите игру", width=15,
+        request_game_label = Label(self.frame1, text="Выберите игру", width=15,
                                    font=W1_FONT, background=BG_COLOR, anchor=W)
         request_game_label.pack(side=LEFT, padx=FRAME_PADX, pady=FRAME_PADY)
 
         # создание надписи с именем выбранной игры
-        game_label = Label(frame1, text=0, textvariable=self.__game_label_text, font=W1_FONT, background=BG_COLOR)
+        game_label = Label(self.frame1, text=0, textvariable=self.__game_label_text, font=W1_FONT, background=BG_COLOR)
         game_label.pack()
 
         # создание listbox с играми
-        game_listbox = Listbox(frame1, width=30, height=2, font=W1_FONT)
+        game_listbox = Listbox(self.frame1, width=30, height=2, font=W1_FONT)
         for game in self.games_names:
             game_listbox.insert(END, game)
         game_listbox.bind("<<ListboxSelect>>", self.game_listbox_select)
 
         # создание scrollbar для listbox с играми
-        scroll_listbox = Scrollbar(frame1, command=game_listbox.yview)
+        scroll_listbox = Scrollbar(self.frame1, command=game_listbox.yview)
         scroll_listbox.pack(side=RIGHT, fill=Y, padx=FRAME_PADX, pady=FRAME_PADY)
         game_listbox.pack(fill=X, padx=FRAME_PADX, expand=True)
         game_listbox.config(yscrollcommand=scroll_listbox.set)
@@ -412,10 +437,10 @@ class StartWindow(Frame):
         # импорт картинки проводника
         image = Image.open('images/Windows_Explorer_Icon.png')
         image = image.resize((30, 30))
-        self.master.win_explorer = ImageTk.PhotoImage(image)
+        self.win_explorer = ImageTk.PhotoImage(image)
         # создание кнопки вызова проводника
         file_explorer_bt = Button(frame2, command=self.file_explorer_bt_press,
-                                  image=self.master.win_explorer)
+                                  image=self.win_explorer)
         file_explorer_bt.pack(side=LEFT, padx=FRAME_PADX, pady=FRAME_PADY)
 
         # создание поля с текстом для имен выбранных ботов
@@ -463,27 +488,40 @@ class StartWindow(Frame):
         # Блок 4
         # создание контейнера frame3
         frame4 = Frame(self, background=BG_COLOR)
-        frame4.pack(expand=True)
+        frame4.pack(fill=BOTH, expand=True)
 
         # создание кнопки начала турнира
         self.__start_tournament_bt = Button(frame4, width=15, height=2, command=self.start_tournament_bt_press,
                                             text="Начать Турнир", font="Times 16", state="disable")
-        self.__start_tournament_bt.pack(padx=FRAME_PADX, pady=FRAME_PADY)
+        self.__start_tournament_bt.pack(expand=True, padx=FRAME_PADX, pady=FRAME_PADY)
 
         # ______________________________
         # mainloop
-        self.master.mainloop()
+        # self.master.after(10, self.set_geometry)
+        self.mainloop()
+
+    def set_geometry(self):
+        w = self.master.winfo_screenwidth() // 2
+        h = self.master.winfo_screenheight() // 2
+        w = w - W1_MIN_WIDTH // 2
+        h = h - W1_MIN_HEIGHT // 2
+        self.master.minsize(W1_MIN_WIDTH, W1_MIN_HEIGHT)
+        self.master.geometry(f'{W1_MIN_WIDTH}x{W1_MIN_HEIGHT}+{w}+{h}')
+        self.master.after(10, self.set_geometry)
 
     def start_tournament_bt_press(self):
         """ Отвечает за работу __start_tournament_bt. Сворачивает данное окно, создает TournamentWindow."""
-        self.master.withdraw()
+        self.withdraw()
+        print(self.winfo_geometry())
+        # self.master.deiconify()
         if self.TournamentWindow is not None:
             self.TournamentWindow.destroy()
-        self.TournamentWindow = TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed, self.selected_game_number,
-                                                 self.master)
+        self.TournamentWindow = TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed,
+                                                 self.selected_game_number, self)
 
     def game_speed_scale_select(self, val):
         """ Отвечает за работу game_speed_scale. Присваивает selected_speed значение со шкалы."""
+        print(self.winfo_geometry())
         self.selected_speed = int(val)
 
     def game_number_scale_select(self, val):
