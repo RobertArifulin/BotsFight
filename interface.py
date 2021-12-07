@@ -1,11 +1,10 @@
-import time
 import tkinter
 from tkinter import *
 from tkinter import filedialog as fd
 from tkinter import scrolledtext
 from constants import *
 from PIL import ImageTk, Image
-from game import Game, Status
+from game import Game
 from tournament import Tournament
 
 
@@ -105,7 +104,7 @@ class TournamentWindow(Frame):
 
         # тестовая кнопка выхода
         self.__pause_bt = Button(self.frame1, width=12, height=1, command=self.pause_bt_press,
-                                 text="Стоп", font="Times 16")
+                                 text="Пауза", font="Times 16")
         self.__pause_bt.grid(row=0, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание шкалы скорости
@@ -130,7 +129,7 @@ class TournamentWindow(Frame):
 
         # вывод заголовка игры
         game_title_label = Label(self.frame2, text=0, textvariable=self.__game_title_var, width=15,
-                             font=W2_FONT, background=BG_COLOR, anchor=CENTER)
+                                 font=W2_FONT, background=BG_COLOR, anchor=CENTER)
         game_title_label.grid(row=0, column=0, sticky=W + E, pady=5)
 
         # вывод статуса игры
@@ -292,11 +291,11 @@ class TournamentWindow(Frame):
         try:
             if self.is_paused:
                 self.is_paused = False
-                self.__pause_bt.configure(text="Стоп")
+                self.__pause_bt.configure(text="Пауза")
                 self.window.after((10 - self.game_speed) * 50 + 10, self.display_game)
             else:
                 self.is_paused = True
-                self.__pause_bt.configure(text="Старт")
+                self.__pause_bt.configure(text="Продолжить")
         except tkinter.TclError:
             pass
 
@@ -351,6 +350,8 @@ class StartWindow(Tk):
             Отвечает за работу number_game_entry.
         start_tournament_bt_press()
             Отвечает за работу __start_tournament_bt.
+        delete_bot_bt_press(self):
+            Отвечает за работу delete_bot_bt.
         game_speed_scale_select()
             Отвечает за работу game_speed_scale.
         number_game_validate()
@@ -369,7 +370,6 @@ class StartWindow(Tk):
         self.__game_label_text = StringVar()
         self.__bot_label_text = StringVar()
         self.__game_number_text = StringVar()
-        self.__bot_label_text.set('Выбранные боты:\n')
         self.__game_number_text.set('1')
 
         self.games = games
@@ -381,6 +381,9 @@ class StartWindow(Tk):
         self.selected_game_number = 1
 
         self.TournamentWindow = None
+        self.frame1 = None
+        self.__start_tournament_bt = None
+        self.__selected_bots_lbox = None
 
         self.create_ui()
 
@@ -412,7 +415,7 @@ class StartWindow(Tk):
         game_label.pack()
 
         # создание listbox с играми
-        game_listbox = Listbox(self.frame1, width=30, height=2, font=W1_FONT)
+        game_listbox = Listbox(self.frame1, width=30, height=3, font=W1_FONT)
         for game in self.games_names:
             game_listbox.insert(END, game)
         game_listbox.bind("<<ListboxSelect>>", self.game_listbox_select)
@@ -428,30 +431,54 @@ class StartWindow(Tk):
         # создание контейнера frame2
         frame2 = Frame(self, background=BG_COLOR)
         frame2.pack(fill=X)
+        for i in range(3):
+            frame2.grid_rowconfigure(i, weight=1)
+        # frame2.grid_columnconfigure(0, weight=1)
+        # frame2.grid_columnconfigure(1, weight=1)
+        frame2.grid_columnconfigure(2, weight=1)
 
-        # создание надписи "Выберете ботов"
-        request_bot_label = Label(frame2, text="Выберите ботов ", width=15,
-                                  font=W1_FONT, background=BG_COLOR, anchor=W)
-        request_bot_label.pack(side=LEFT, fill=X, padx=FRAME_PADX, pady=FRAME_PADY)
+        # создание надписи "Выбрать Ботов"
+        request_bot_label = Label(frame2, text="Выбрать Ботов", width=15,
+                                  font=W1_FONT, background=BG_COLOR)
+        request_bot_label.grid(row=1, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E)
+
+        # создание надписи "Удалить Бота"
+        delete_bot_label = Label(frame2, text="Удалить Бота", width=15,
+                                  font=W1_FONT, background=BG_COLOR)
+        delete_bot_label.grid(row=2, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E)
 
         # импорт картинки проводника
         image = Image.open('images/Windows_Explorer_Icon.png')
-        image = image.resize((30, 30))
-        self.win_explorer = ImageTk.PhotoImage(image)
+        image = image.resize((32, 32))
+        win_explorer = ImageTk.PhotoImage(image)
         # создание кнопки вызова проводника
         file_explorer_bt = Button(frame2, command=self.file_explorer_bt_press,
-                                  image=self.win_explorer)
-        file_explorer_bt.pack(side=LEFT, padx=FRAME_PADX, pady=FRAME_PADY)
+                                  image=win_explorer)
+        file_explorer_bt.grid(row=1, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=W)
+        # file_explorer_bt.pack(side=LEFT, padx=FRAME_PADX, pady=FRAME_PADY)
+
+        # импорт картинки мусорки
+        image = Image.open('images/Delete_Icon.png')
+        image = image.resize((32, 32))
+        delete_png = ImageTk.PhotoImage(image)
+        # создание кнопки удаления бота
+        bot_delete_bt = Button(frame2, command=self.delete_bot_bt_press,
+                                  image=delete_png)
+        bot_delete_bt.grid(row=2, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=W)
 
         # создание поля с текстом для имен выбранных ботов
-        self.__selected_bots_text = Text(frame2, height=5, font=W1_FONT, background=BG_COLOR)
-        self.__selected_bots_text.insert(1.0, self.__bot_label_text.get())
+        self.__selected_bots_lbox = Listbox(frame2, height=5, width=23, font=W1_FONT, background=BG_COLOR)
+
+        # создание надписи "Выбранные Боты"
+        selected_bots_label = Label(frame2, text="Выбранные Боты", width=15,
+                                  font=W1_FONT, background=BG_COLOR)
+        selected_bots_label.grid(row=0, column=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E+W)
 
         # создание scrollbar для поля с текстом
-        scroll_text = Scrollbar(frame2, command=self.__selected_bots_text.yview)
-        scroll_text.pack(side=RIGHT, fill=Y, padx=FRAME_PADX, pady=FRAME_PADY)
-        self.__selected_bots_text.configure(state='disabled', yscrollcommand=scroll_text.set)
-        self.__selected_bots_text.pack(side=LEFT, padx=FRAME_PADX, pady=FRAME_PADY)
+        scroll_text = Scrollbar(frame2, command=self.__selected_bots_lbox.yview)
+        scroll_text.grid(row=1, column=3, rowspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=N+S)
+        self.__selected_bots_lbox.configure(yscrollcommand=scroll_text.set)
+        self.__selected_bots_lbox.grid(row=1, column=2, rowspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # ______________________________
         # Блок 3
@@ -512,8 +539,6 @@ class StartWindow(Tk):
     def start_tournament_bt_press(self):
         """ Отвечает за работу __start_tournament_bt. Сворачивает данное окно, создает TournamentWindow."""
         self.withdraw()
-        print(self.winfo_geometry())
-        # self.master.deiconify()
         if self.TournamentWindow is not None:
             self.TournamentWindow.destroy()
         self.TournamentWindow = TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed,
@@ -521,7 +546,6 @@ class StartWindow(Tk):
 
     def game_speed_scale_select(self, val):
         """ Отвечает за работу game_speed_scale. Присваивает selected_speed значение со шкалы."""
-        print(self.winfo_geometry())
         self.selected_speed = int(val)
 
     def game_number_scale_select(self, val):
@@ -545,6 +569,24 @@ class StartWindow(Tk):
         except TclError:
             pass
 
+    def delete_bot_bt_press(self):
+        """ Отвечает за работу delete_bot_bt. Удаляет выранного бота. Обновляет виджет."""
+        deleted_bots = self.__selected_bots_lbox.curselection()
+
+        if deleted_bots:
+            self.selected_bots.pop(deleted_bots[0])
+            self.selected_bots.sort()
+
+            s = [bot.split('/')[-1] for bot in self.selected_bots]
+            self.__selected_bots_lbox.delete(0, END)
+            for i in s:
+                self.__selected_bots_lbox.insert(END, i)
+
+            if self.selected_game_name and len(self.selected_bots) > 1:
+                self.__start_tournament_bt.configure(state="normal")
+            else:
+                self.__start_tournament_bt.configure(state="disable")
+
     def file_explorer_bt_press(self):
         """ Отвечает за работу file_explorer_bt. Выводит имена выбранных ботов. Удаляет повторения.
             Проверяет, достаточно ли данных для начала турнира."""
@@ -554,14 +596,12 @@ class StartWindow(Tk):
         for path in paths:
             if path not in self.selected_bots:
                 self.selected_bots.append(path)
-            else:
-                self.selected_bots.remove(path)
+        self.selected_bots.sort()
 
-        s = 'Выбранные боты:\n' + '\n'.join([bot.split('/')[-1] for bot in sorted(self.selected_bots)])
-        self.__selected_bots_text.configure(state='normal')
-        self.__selected_bots_text.delete('1.0', END)
-        self.__selected_bots_text.replace(0.0, 1.0, s)
-        self.__selected_bots_text.configure(state='disabled')
+        s = [bot.split('/')[-1] for bot in self.selected_bots]
+        self.__selected_bots_lbox.delete(0, END)
+        for i in s:
+            self.__selected_bots_lbox.insert(END, i)
 
         if self.selected_game_name and len(self.selected_bots) > 1:
             self.__start_tournament_bt.configure(state="normal")
