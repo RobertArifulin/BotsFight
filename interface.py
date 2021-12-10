@@ -4,7 +4,7 @@ from tkinter import filedialog as fd
 from tkinter import scrolledtext
 from constants import *
 from PIL import ImageTk, Image
-from game import Game
+from game import Game, Status
 from tournament import Tournament
 
 
@@ -50,7 +50,7 @@ class TournamentWindow(Frame):
     is_paused: bool
     tournament: Tournament
 
-    def __init__(self, bots_paths: list[str], game: Game, speed: int, game_number: int, origin: Tk):
+    def __init__(self, bots_paths: list[str], game: Game, speed: int, game_number: int, is_fast: bool, origin: Tk):
         super().__init__()
 
         self.window = Toplevel(background=BG_COLOR)
@@ -58,6 +58,7 @@ class TournamentWindow(Frame):
         self.bots_paths = bots_paths
         self.game = game
         self.game.game_init()
+        self.is_fast = is_fast
         self.game_speed = speed
         self.game_number = game_number
         self.origin = origin
@@ -318,6 +319,8 @@ class TournamentWindow(Frame):
             self.window.board = ImageTk.PhotoImage(image)
             image = self.__board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
             self.__board_canvas.pack(expand=True, fill=BOTH)
+            if ("Победа" in res or "Ничья" in res) and not self.is_fast:
+                self.pause_bt_press()
             if not self.is_paused:
                 self.window.after((10 - self.game_speed) * 50 + 20, self.display_game)
         else:
@@ -379,11 +382,27 @@ class StartWindow(Tk):
         self.selected_bots = []
         self.selected_speed = 1
         self.selected_game_number = 1
+        self.is_fast = False
 
         self.TournamentWindow = None
         self.frame1 = None
         self.__start_tournament_bt = None
         self.__selected_bots_lbox = None
+
+        # импорт картинки галочки
+        image = Image.open('images/Check_Ico.png')
+        image = image.resize((32, 32))
+        self.check_png = ImageTk.PhotoImage(image)
+
+        # импорт картинки галочки
+        image = Image.open('images/Check_Ico.png')
+        image = image.resize((32, 32))
+        self.check_png = ImageTk.PhotoImage(image)
+
+        # импорт картинки крестика
+        image = Image.open('images/Cross_Ico.png')
+        image = image.resize((32, 32))
+        self.cross_png = ImageTk.PhotoImage(image)
 
         self.create_ui()
 
@@ -399,32 +418,38 @@ class StartWindow(Tk):
         self.minsize(W1_MIN_WIDTH, W1_MIN_HEIGHT)
         self.geometry(f'{W1_MIN_WIDTH}x{W1_MIN_HEIGHT}+{w}+{h}')
         self.title("Турнир Машин")
-        # self.pack(fill=BOTH, expand=True)
 
         # создание контейнера frame1
         self.frame1 = Frame(self, background=BG_COLOR)
         self.frame1.pack(fill=X)
 
+        for i in range(4):
+            self.frame1.grid_rowconfigure(i, weight=1)
+        self.frame1.grid_columnconfigure(1, weight=1)
+
         # создание надписи "Выберете игру"
-        request_game_label = Label(self.frame1, text="Выберите игру", width=15,
-                                   font=W1_FONT, background=BG_COLOR, anchor=W)
-        request_game_label.pack(side=LEFT, padx=FRAME_PADX, pady=FRAME_PADY)
+        request_game_label = Label(self.frame1, text="Выбрать Игру", font=W1_FONT, background=BG_COLOR)
+        request_game_label.grid(row=1, column=0, rowspan=2, padx=FRAME_PADX, pady=FRAME_PADY)
 
         # создание надписи с именем выбранной игры
         game_label = Label(self.frame1, text=0, textvariable=self.__game_label_text, font=W1_FONT, background=BG_COLOR)
-        game_label.pack()
+        game_label.grid(row=0, column=1, padx=FRAME_PADX, pady=FRAME_PADY)
+
+        # создание надписи "Выбранная игра:"
+        selected_game_label = Label(self.frame1, text="Выбранная Игра", font=W1_FONT, background=BG_COLOR)
+        selected_game_label.grid(row=0, column=0, padx=FRAME_PADX, pady=FRAME_PADY)
 
         # создание listbox с играми
-        game_listbox = Listbox(self.frame1, width=30, height=3, font=W1_FONT)
+        game_listbox = Listbox(self.frame1, width=30, height=LB_HEIGHT, font=W1_FONT)
         for game in self.games_names:
             game_listbox.insert(END, game)
         game_listbox.bind("<<ListboxSelect>>", self.game_listbox_select)
 
         # создание scrollbar для listbox с играми
         scroll_listbox = Scrollbar(self.frame1, command=game_listbox.yview)
-        scroll_listbox.pack(side=RIGHT, fill=Y, padx=FRAME_PADX, pady=FRAME_PADY)
-        game_listbox.pack(fill=X, padx=FRAME_PADX, expand=True)
+        scroll_listbox.grid(row=1, column=2, rowspan=2, padx=FRAME_PADX, pady=FRAME_PADY, sticky=N + S + W)
         game_listbox.config(yscrollcommand=scroll_listbox.set)
+        game_listbox.grid(row=1, column=1, rowspan=2, sticky=E + W, padx=FRAME_PADX, pady=FRAME_PADY)
 
         # ______________________________
         # Блок 2
@@ -444,7 +469,7 @@ class StartWindow(Tk):
 
         # создание надписи "Удалить Бота"
         delete_bot_label = Label(frame2, text="Удалить Бота", width=15,
-                                  font=W1_FONT, background=BG_COLOR)
+                                 font=W1_FONT, background=BG_COLOR)
         delete_bot_label.grid(row=2, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E)
 
         # импорт картинки проводника
@@ -463,20 +488,20 @@ class StartWindow(Tk):
         delete_png = ImageTk.PhotoImage(image)
         # создание кнопки удаления бота
         bot_delete_bt = Button(frame2, command=self.delete_bot_bt_press,
-                                  image=delete_png)
+                               image=delete_png)
         bot_delete_bt.grid(row=2, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=W)
 
         # создание поля с текстом для имен выбранных ботов
-        self.__selected_bots_lbox = Listbox(frame2, height=5, width=23, font=W1_FONT, background=BG_COLOR)
+        self.__selected_bots_lbox = Listbox(frame2, height=LB_HEIGHT, width=23, font=W1_FONT, background=BG_COLOR)
 
         # создание надписи "Выбранные Боты"
         selected_bots_label = Label(frame2, text="Выбранные Боты", width=15,
-                                  font=W1_FONT, background=BG_COLOR)
-        selected_bots_label.grid(row=0, column=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E+W)
+                                    font=W1_FONT, background=BG_COLOR)
+        selected_bots_label.grid(row=0, column=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание scrollbar для поля с текстом
         scroll_text = Scrollbar(frame2, command=self.__selected_bots_lbox.yview)
-        scroll_text.grid(row=1, column=3, rowspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=N+S)
+        scroll_text.grid(row=1, column=3, rowspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=N + S)
         self.__selected_bots_lbox.configure(yscrollcommand=scroll_text.set)
         self.__selected_bots_lbox.grid(row=1, column=2, rowspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
@@ -487,29 +512,38 @@ class StartWindow(Tk):
         frame3.pack(fill=BOTH)
 
         # create the center widgets
-        frame3.grid_rowconfigure(0, weight=1)
-        frame3.grid_columnconfigure(0, weight=1)
-        frame3.grid_columnconfigure(3, weight=1)
+        for i in range(2):
+            frame3.grid_rowconfigure(i, weight=1)
+            frame3.grid_columnconfigure(i, weight=1)
+        frame3.grid_columnconfigure(2, weight=1)
 
         # создание поля с текстом для имен выбранных ботов
-        game_speed_label = Label(frame3, text="Скорость игры",
+        game_speed_label = Label(frame3, text="Скорость Игры",
                                  font=W1_FONT, background=BG_COLOR, anchor=CENTER)
-        game_speed_label.grid(row=0, column=0, columnspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
-
-        # создание поля с текстом для имен выбранных ботов
-        game_number_label = Label(frame3, text="Кол-во партий",
-                                  font=W1_FONT, background=BG_COLOR, anchor=CENTER)
-        game_number_label.grid(row=0, column=3, columnspan=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
+        game_speed_label.grid(row=0, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание шкалы скорости
         game_speed_scale = Scale(frame3, from_=1, to=10, orient=HORIZONTAL, font=W1_FONT,
                                  command=self.game_speed_scale_select, background=BG_COLOR)
-        game_speed_scale.grid(row=1, column=0, columnspan=2, padx=GRID_PADX, pady=GRID_PADY)
+        game_speed_scale.grid(row=1, column=0, padx=GRID_PADX, pady=GRID_PADY)
+
+        isfast_label = Label(frame3, text="Быстрый Режим", font=W1_FONT, background=BG_COLOR, anchor=CENTER)
+        isfast_label.grid(row=0, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
+
+        # создание чек-кнопки
+        self.isfast_bt = Button(frame3, width=32, height=32, command=self.isfast_bt_press,
+                                background=BG_COLOR, image=self.cross_png)
+        self.isfast_bt.grid(row=1, column=1, padx=GRID_PADX, pady=GRID_PADY)
+
+        # создание поля с текстом для имен выбранных ботов
+        game_number_label = Label(frame3, text="Кол-во Партий",
+                                  font=W1_FONT, background=BG_COLOR, anchor=CENTER)
+        game_number_label.grid(row=0, column=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание шкалы кол-ва игр
         game_number_entry = Scale(frame3, from_=1, to=10, orient=HORIZONTAL, font=W1_FONT,
                                   command=self.game_number_scale_select, background=BG_COLOR)
-        game_number_entry.grid(row=1, column=3, columnspan=2, padx=GRID_PADX, pady=GRID_PADY)
+        game_number_entry.grid(row=1, column=2, padx=GRID_PADX, pady=GRID_PADY)
 
         # ______________________________
         # Блок 4
@@ -542,7 +576,16 @@ class StartWindow(Tk):
         if self.TournamentWindow is not None:
             self.TournamentWindow.destroy()
         self.TournamentWindow = TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed,
-                                                 self.selected_game_number, self)
+                                                 self.selected_game_number, self.is_fast, self)
+
+    def isfast_bt_press(self):
+        """ Отвечает за работу __is_fast_bt. Сворачивает данное окно, создает TournamentWindow."""
+        if self.is_fast:
+            self.is_fast = False
+            self.isfast_bt.configure(image=self.cross_png)
+        else:
+            self.is_fast = True
+            self.isfast_bt.configure(image=self.check_png)
 
     def game_speed_scale_select(self, val):
         """ Отвечает за работу game_speed_scale. Присваивает selected_speed значение со шкалы."""

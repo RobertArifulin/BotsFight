@@ -145,7 +145,7 @@ class Tournament:
         elif res == Status.bot2_won:
             status = f"Победа {pair[1].name}!"
         elif res == Status.draw:
-            status = f"Ничья между {pair[0].name} и {pair[1].name}!"
+            status = f"Ничья между\n{pair[0].name} и\n{pair[1].name}!"
         elif res == Status.bot1_next:
             status = f"Ход {pair[0].name}"
         else:

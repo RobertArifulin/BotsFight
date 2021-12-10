@@ -46,14 +46,14 @@ class Bot:
             try:
                 bot_response = subprocess.run([sys.executable, self.path], input=game_condition,
                                               capture_output=True, check=True, timeout=1)
-            except subprocess.TimeoutExpired:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
                 bot_response = "timeout"
 
         else:
             try:
                 bot_response = subprocess.run(self.path, input=game_condition, capture_output=True,
                                               check=True, timeout=1)
-            except subprocess.TimeoutExpired:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
                 bot_response = "timeout"
 
         if bot_response != "timeout":
