@@ -523,9 +523,9 @@ class StartWindow(Tk):
         game_speed_label.grid(row=0, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание шкалы скорости
-        game_speed_scale = Scale(frame3, from_=1, to=10, orient=HORIZONTAL, font=W1_FONT,
-                                 command=self.game_speed_scale_select, background=BG_COLOR)
-        game_speed_scale.grid(row=1, column=0, padx=GRID_PADX, pady=GRID_PADY)
+        self.game_speed_scale = Scale(frame3, from_=1, to=10, orient=HORIZONTAL, font=W1_FONT,
+                                      command=self.game_speed_scale_select, background=BG_COLOR)
+        self.game_speed_scale.grid(row=1, column=0, padx=GRID_PADX, pady=GRID_PADY)
 
         isfast_label = Label(frame3, text="Быстрый Режим", font=W1_FONT, background=BG_COLOR, anchor=CENTER)
         isfast_label.grid(row=0, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
@@ -585,6 +585,7 @@ class StartWindow(Tk):
             self.isfast_bt.configure(image=self.cross_png)
         else:
             self.is_fast = True
+            self.game_speed_scale.set(10)
             self.isfast_bt.configure(image=self.check_png)
 
     def game_speed_scale_select(self, val):

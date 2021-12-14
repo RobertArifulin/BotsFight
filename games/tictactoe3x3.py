@@ -26,7 +26,19 @@ class TicTacToe3x3(Game):
         return self.board_string[:-1]
 
     def bot_made_turn(self, turn: str) -> Status:
-        x, y = map(int, turn.split())
+        try:
+            x, y = map(int, turn.split())
+        except:  # Проверки на корректность хода
+            if self.status == Status.bot1_next:
+                return Status.bot2_won
+            else:
+                return Status.bot1_won
+        if x not in [1, 2, 3] or y not in [1, 2, 3] or self.board[y - 1][x - 1] != 0:
+            if self.status == Status.bot1_next:
+                return Status.bot2_won
+            else:
+                return Status.bot1_won
+
         if self.status == Status.bot1_next:
             self.board[y - 1][x - 1] = 1
         elif self.status == Status.bot2_next:
