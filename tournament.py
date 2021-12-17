@@ -59,6 +59,7 @@ class Tournament:
     game_number: int
 
     def __init__(self, game: Game, game_number: int):
+        self.first_move = 2
         self.game = game
         self.bots = []
         self.standings = []
@@ -120,18 +121,29 @@ class Tournament:
         if len(self.tournament_results) == len(self.standings):
             image = self.game.draw_board_image()
             return image, False, False
+
         pair = self.standings[len(self.tournament_results)]
+
+        if self.first_move:
+            image = self.game.draw_board_image()
+            res = self.create_text(Status.bot1_next, pair)
+            self.first_move -= 1
+            return image, res[0], res[1]
+
         res = self.turn(pair, self.game.get_status())
         image = self.game.draw_board_image()
         if res == Status.bot1_won:
             self.tournament_results.append(f"{pair[0].name} defeated {pair[1].name}")
-            self.game.game_init()
+            self.game_init()
+            self.first_move = 1
         elif res == Status.bot2_won:
             self.tournament_results.append(f"{pair[1].name} defeated {pair[0].name}")
-            self.game.game_init()
+            self.game_init()
+            self.first_move = 1
         elif res == Status.draw:
             self.tournament_results.append(f"{pair[0].name} draw {pair[1].name}")
-            self.game.game_init()
+            self.game_init()
+            self.first_move = 1
         res = self.create_text(res, pair)
         return image, res[0], res[1]
 
@@ -139,15 +151,15 @@ class Tournament:
         """
             Создает описание происходящих в партии событий.
         """
-        title = f"{pair[0].name} vs\n{pair[1].name}"
+        title = f"{pair[0].name}\nvs\n{pair[1].name}"
         if res == Status.bot1_won:
-            status = f"Победа {pair[0].name}!"
+            status = f"Победа\n{pair[0].name}!"
         elif res == Status.bot2_won:
-            status = f"Победа {pair[1].name}!"
+            status = f"Победа\n{pair[1].name}!"
         elif res == Status.draw:
             status = f"Ничья между\n{pair[0].name} и\n{pair[1].name}!"
         elif res == Status.bot1_next:
-            status = f"Ход {pair[0].name}"
+            status = f"Ход\n{pair[0].name}"
         else:
-            status = f"Ход {pair[1].name}"
+            status = f"Ход\n{pair[1].name}"
         return title, status

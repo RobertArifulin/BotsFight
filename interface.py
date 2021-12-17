@@ -6,6 +6,7 @@ from constants import *
 from PIL import ImageTk, Image
 from game import Game, Status
 from tournament import Tournament
+import time
 
 
 class TournamentWindow(Frame):
@@ -148,10 +149,13 @@ class TournamentWindow(Frame):
             self.frame3.grid_rowconfigure(i, weight=1)
 
         self.__board_canvas = Canvas(self.frame3, height=400, width=300)
+        self.__board_canvas.pack(expand=True, fill=BOTH)
+        image = self.tournament.game.draw_board_image()
+        self.display_board(image)
 
         # ______________________________
         # mainloop
-        self.window.after(10, self.display_game)
+        self.window.after(10, self.play_game)
         self.window.mainloop()
 
     def display_tournament_results(self):
@@ -280,9 +284,12 @@ class TournamentWindow(Frame):
     def close_bt_press(self):
         """ Отвечает за работу close_bt. Сворачивает данное окно и разворачивает StartWindow"""
         self.origin.deiconify()
+        self.clear_ui()
+        self.destroy()
         self.window.withdraw()
 
     def clear_ui(self):
+
         for i in self.window.winfo_children():
             i.destroy()
         self.display_tournament_results()
@@ -293,7 +300,7 @@ class TournamentWindow(Frame):
             if self.is_paused:
                 self.is_paused = False
                 self.__pause_bt.configure(text="Пауза")
-                self.window.after((10 - self.game_speed) * 50 + 10, self.display_game)
+                self.window.after((10 - self.game_speed) * 50 + 10, self.play_game)
             else:
                 self.is_paused = True
                 self.__pause_bt.configure(text="Продолжить")
@@ -304,28 +311,33 @@ class TournamentWindow(Frame):
         """ Отвечает за работу game_speed_scale. Присваивает selected_speed значение со шкалы."""
         self.game_speed = int(float(val))
 
-    def display_game(self):
+    def play_game(self):
         """ Отвечает за отрисовку игры. Получает результат хода, масштабирует и отрисовывает картинку с полем."""
-        image, title, res = self.tournament.tournament()
-        if res:
-            self.__status_label_var.set(res)
-            self.__game_title_var.set(title)
-            height = image.height
-            width = image.width
-            if int(height / width * self.__board_canvas.winfo_width()):
-                image = image.resize((self.__board_canvas.winfo_width(),
-                                      min(int(height / width * self.__board_canvas.winfo_width()),
-                                          self.__board_canvas.winfo_height())))
-            self.window.board = ImageTk.PhotoImage(image)
-            image = self.__board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
-            self.__board_canvas.pack(expand=True, fill=BOTH)
-            if ("Победа" in res or "Ничья" in res) and not self.is_fast:
+        try:
+            image, title, res = self.tournament.tournament()
+            if res:
+                self.__status_label_var.set(res)
+                self.__game_title_var.set(title)
+                self.display_board(image)
+                if ("Победа" in res or "Ничья" in res) and not self.is_fast:
+                    self.pause_bt_press()
+                if not self.is_paused:
+                    self.window.after((10 - self.game_speed) * 60 + 20, self.play_game)
+            else:
                 self.pause_bt_press()
-            if not self.is_paused:
-                self.window.after((10 - self.game_speed) * 50 + 20, self.display_game)
-        else:
-            self.pause_bt_press()
-            self.clear_ui()
+                self.clear_ui()
+        except:
+            pass
+
+    def display_board(self, image):
+        height = image.height
+        width = image.width
+        if int(height / width * self.__board_canvas.winfo_width()):
+            image = image.resize((self.__board_canvas.winfo_width(),
+                                  min(int(height / width * self.__board_canvas.winfo_width()),
+                                      self.__board_canvas.winfo_height())))
+        self.window.board = ImageTk.PhotoImage(image)
+        self.canvas = self.__board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
 
 
 class StartWindow(Tk):
@@ -458,8 +470,6 @@ class StartWindow(Tk):
         frame2.pack(fill=X)
         for i in range(3):
             frame2.grid_rowconfigure(i, weight=1)
-        # frame2.grid_columnconfigure(0, weight=1)
-        # frame2.grid_columnconfigure(1, weight=1)
         frame2.grid_columnconfigure(2, weight=1)
 
         # создание надписи "Выбрать Ботов"
@@ -558,23 +568,12 @@ class StartWindow(Tk):
 
         # ______________________________
         # mainloop
-        # self.master.after(10, self.set_geometry)
         self.mainloop()
-
-    def set_geometry(self):
-        w = self.master.winfo_screenwidth() // 2
-        h = self.master.winfo_screenheight() // 2
-        w = w - W1_MIN_WIDTH // 2
-        h = h - W1_MIN_HEIGHT // 2
-        self.master.minsize(W1_MIN_WIDTH, W1_MIN_HEIGHT)
-        self.master.geometry(f'{W1_MIN_WIDTH}x{W1_MIN_HEIGHT}+{w}+{h}')
-        self.master.after(10, self.set_geometry)
 
     def start_tournament_bt_press(self):
         """ Отвечает за работу __start_tournament_bt. Сворачивает данное окно, создает TournamentWindow."""
         self.withdraw()
-        if self.TournamentWindow is not None:
-            self.TournamentWindow.destroy()
+        self.TournamentWindow = None
         self.TournamentWindow = TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed,
                                                  self.selected_game_number, self.is_fast, self)
 
