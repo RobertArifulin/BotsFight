@@ -1,12 +1,12 @@
+import time
 import tkinter
 from tkinter import *
 from tkinter import filedialog as fd
 from tkinter import scrolledtext
 from constants import *
 from PIL import ImageTk, Image
-from game import Game, Status
+from game import Game
 from tournament import Tournament
-import time
 
 
 class TournamentWindow(Frame):
@@ -24,9 +24,16 @@ class TournamentWindow(Frame):
             Скорость игры.
         game_number: int
             Количество партий в одной игре.
-        origin
+        origin: Tk
             Окно родитель.
-
+        is_fast: bool
+            Флаг режима.
+        is_paused: bool
+            Флаг паузы.
+        board_image: Image
+            Картинка игрового поля.
+        last_callback_time: float
+            Последнее время вызова функции resize.
 
         Methods
         -------
@@ -48,8 +55,11 @@ class TournamentWindow(Frame):
     game_speed: int
     game_number: int
     origin: Tk
-    is_paused: bool
     tournament: Tournament
+    is_fast: bool
+    is_paused: bool
+    board_image: Image
+    last_callback_time: float
 
     def __init__(self, bots_paths: list[str], game: Game, speed: int, game_number: int, is_fast: bool, origin: Tk):
         super().__init__()
@@ -61,9 +71,11 @@ class TournamentWindow(Frame):
         self.game.game_init()
         self.is_fast = is_fast
         self.game_speed = speed
+        self.board_image = None
         self.game_number = game_number
         self.origin = origin
         self.is_paused = False
+        self.last_callback_time = 0
 
         self.tournament = Tournament(self.game, self.game_number)
         for bot_path in self.bots_paths:
@@ -80,6 +92,7 @@ class TournamentWindow(Frame):
     def create_ui(self):
         # Блок 1
         # задаются параметры окна
+        self.last_callback_time = time.time()
         w = self.window.winfo_screenwidth() // 2
         h = self.window.winfo_screenheight() // 2
         w = w - W2_MIN_WIDTH // 2
@@ -150,13 +163,21 @@ class TournamentWindow(Frame):
 
         self.__board_canvas = Canvas(self.frame3, height=400, width=300)
         self.__board_canvas.pack(expand=True, fill=BOTH)
-        image = self.tournament.game.draw_board_image()
-        self.display_board(image)
+        self.board_image = self.tournament.game.draw_board_image()
+        self.display_board()
+
+        self.window.bind('<Configure>', self.resize)
 
         # ______________________________
         # mainloop
         self.window.after(10, self.play_game)
         self.window.mainloop()
+
+    def resize(self, _=None):
+        cur_time = time.time()
+        if (cur_time - self.last_callback_time) > 0.05:
+            self.display_board()
+            self.last_callback_time = time.time()
 
     def display_tournament_results(self):
         # создание контейнера frame1
@@ -289,7 +310,6 @@ class TournamentWindow(Frame):
         self.window.withdraw()
 
     def clear_ui(self):
-
         for i in self.window.winfo_children():
             i.destroy()
         self.display_tournament_results()
@@ -314,11 +334,11 @@ class TournamentWindow(Frame):
     def play_game(self):
         """ Отвечает за отрисовку игры. Получает результат хода, масштабирует и отрисовывает картинку с полем."""
         try:
-            image, title, res = self.tournament.tournament()
+            self.board_image, title, res = self.tournament.tournament()
             if res:
                 self.__status_label_var.set(res)
                 self.__game_title_var.set(title)
-                self.display_board(image)
+                self.display_board()
                 if ("Победа" in res or "Ничья" in res) and not self.is_fast:
                     self.pause_bt_press()
                 if not self.is_paused:
@@ -329,15 +349,19 @@ class TournamentWindow(Frame):
         except:
             pass
 
-    def display_board(self, image):
-        height = image.height
-        width = image.width
-        if int(height / width * self.__board_canvas.winfo_width()):
-            image = image.resize((self.__board_canvas.winfo_width(),
-                                  min(int(height / width * self.__board_canvas.winfo_width()),
-                                      self.__board_canvas.winfo_height())))
-        self.window.board = ImageTk.PhotoImage(image)
-        self.canvas = self.__board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
+    def display_board(self):
+        try:
+            image = self.board_image
+            height = image.height
+            width = image.width
+            k = height / width
+            if int(k * self.__board_canvas.winfo_width()):
+                image = image.resize((min(self.__board_canvas.winfo_width(), int(k * self.__board_canvas.winfo_height())),
+                                      min(int(k * self.__board_canvas.winfo_width()), self.__board_canvas.winfo_height())))
+            self.window.board = ImageTk.PhotoImage(image)
+            self.canvas = self.__board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
+        except:
+            pass
 
 
 class StartWindow(Tk):

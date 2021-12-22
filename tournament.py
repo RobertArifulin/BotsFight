@@ -113,14 +113,14 @@ class Tournament:
                 return status
         return status
 
-    def tournament(self):
+    def tournament(self) -> tuple[Image, str, str]:
         """ Для каждой пары (pair) из standings проводит play().
             Результат добовляет в tournament_results.
             После проведения всех игр возвращает результаты турнира - tournament_results.
         """
         if len(self.tournament_results) == len(self.standings):
             image = self.game.draw_board_image()
-            return image, False, False
+            return image, '', ''
 
         pair = self.standings[len(self.tournament_results)]
 
