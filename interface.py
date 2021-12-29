@@ -1,5 +1,4 @@
 import time
-import tkinter
 from tkinter import *
 from tkinter import filedialog as fd
 from tkinter import scrolledtext
@@ -7,6 +6,7 @@ from constants import *
 from PIL import ImageTk, Image
 from game import Game
 from tournament import Tournament
+from tabulate import tabulate
 
 
 class TournamentWindow(Frame):
@@ -202,13 +202,9 @@ class TournamentWindow(Frame):
         self.frame2 = Frame(self.window, background=BG_COLOR)
         self.frame2.pack(fill=BOTH, expand=True, padx=GRID_PADX, pady=GRID_PADY)
 
-        results_text = scrolledtext.ScrolledText(self.frame2, font=W2_FONT)
+        results_text = scrolledtext.ScrolledText(self.frame2, wrap="none")
         results_text.insert(INSERT, self.create_results_text(self.tournament.tournament_results))
-        results_text.pack(side=LEFT, expand=True)
-
-        results_scroll = Scrollbar(self.frame2, command=results_text.yview)
-        results_scroll.pack(side=RIGHT, fill=Y, padx=FRAME_PADX, pady=FRAME_PADY)
-        results_text.configure(state='disabled', yscrollcommand=results_scroll.set)
+        results_text.pack(side=LEFT, expand=True, fill=X, padx=GRID_PADX, pady=GRID_PADY)
 
     def create_results_text(self, results: list) -> str:
         s = ""
@@ -224,6 +220,21 @@ class TournamentWindow(Frame):
             else:
                 bots_res[bot1][0].append(bot2)
                 bots_res[bot2][2].append(bot1)
+        headers = [" "]
+        headers.extend(list(bots_res.keys()))
+        n = len(bots_res)
+        value = []
+        for i in range(n):
+            new_line = [headers[i + 1]]
+            for j in range(n):
+                if i == j:
+                    new_line.append("~~~~~~")
+                else:
+                    win = bots_res[headers[i + 1]][0].count(headers[j + 1])
+                    draw = bots_res[headers[i + 1]][1].count(headers[j + 1])
+                    lose = bots_res[headers[i + 1]][2].count(headers[j + 1])
+                    new_line.append(f"{win}/{draw}/{lose}")
+            value.append(new_line.copy())
         best_bots = ['', 0]
         worst_bots = ['', 0]
         for bot in self.tournament.bots:
@@ -298,8 +309,9 @@ class TournamentWindow(Frame):
         best_bots[0] = best_bots[0]
         worst_bots[0] = worst_bots[0][:-1]
 
-        s += f"Лучшие боты с наибольшим количеством побед - {best_bots[1]}:\n{best_bots[0]}\n"
-        s += f"Худшие боты с наибольшим количеством поражений - {worst_bots[1]}:\n{worst_bots[0]}"
+        s += f"Лучшие боты с наибольшим количеством побед ({best_bots[1]}):\n{best_bots[0]}\n"
+        s += f"Худшие боты с наибольшим количеством поражений ({worst_bots[1]}):\n{worst_bots[0]}"
+        s = tabulate(value, headers, tablefmt="grid")
         return s
 
     def close_bt_press(self):
@@ -312,7 +324,6 @@ class TournamentWindow(Frame):
     def clear_ui(self):
         for i in self.window.winfo_children():
             i.destroy()
-        self.display_tournament_results()
 
     def pause_bt_press(self):
         """ Отвечает за работу __pause_bt. Останавливает/запускает игру."""
@@ -324,7 +335,7 @@ class TournamentWindow(Frame):
             else:
                 self.is_paused = True
                 self.__pause_bt.configure(text="Продолжить")
-        except tkinter.TclError:
+        except TclError:
             pass
 
     def game_speed_scale_select(self, val):
@@ -346,6 +357,7 @@ class TournamentWindow(Frame):
             else:
                 self.pause_bt_press()
                 self.clear_ui()
+                self.display_tournament_results()
         except:
             pass
 
@@ -356,8 +368,9 @@ class TournamentWindow(Frame):
             width = image.width
             k = height / width
             if int(k * self.__board_canvas.winfo_width()):
-                image = image.resize((min(self.__board_canvas.winfo_width(), int(k * self.__board_canvas.winfo_height())),
-                                      min(int(k * self.__board_canvas.winfo_width()), self.__board_canvas.winfo_height())))
+                image = image.resize(
+                    (min(self.__board_canvas.winfo_width(), int(k * self.__board_canvas.winfo_height())),
+                     min(int(k * self.__board_canvas.winfo_width()), self.__board_canvas.winfo_height())))
             self.window.board = ImageTk.PhotoImage(image)
             self.canvas = self.__board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
         except:

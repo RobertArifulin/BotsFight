@@ -6,6 +6,7 @@ W2_MIN_HEIGHT = 550
 
 W1_FONT = 'Times 13'
 W2_FONT = 'Times 16'
+TOUR_FONT = 'J 16'
 
 FRAME_PADX = 5
 FRAME_PADY = 15

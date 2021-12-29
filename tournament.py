@@ -149,7 +149,7 @@ class Tournament:
 
     def create_text(self, res: Status, pair: tuple[Bot, Bot]) -> tuple[str, str]:
         """
-            Создает описание происходящих в партии событий.
+        Создает описание происходящих в партии событий.
         """
         title = f"{pair[0].name}\nvs\n{pair[1].name}"
         if res == Status.bot1_won:
