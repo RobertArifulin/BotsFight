@@ -15,6 +15,7 @@ class Matches(Game):
         self.status = Status.bot1_next
 
     def game_init(self) -> str:
+        self.status = Status.bot1_next
         self.allowed_takes = [i for i in range(1, random.randint(3, 5))]
         self.matches = random.randint(self.allowed_takes[-1] * 2, 11)
         self.start_count = self.matches

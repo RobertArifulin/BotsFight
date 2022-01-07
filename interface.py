@@ -194,7 +194,7 @@ class TournamentWindow(Frame):
         close_bt = Button(self.frame1, width=12, height=1, command=self.close_bt_press,
                           text="Назад", font="Times 16")
         close_bt.grid(row=0, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
-        # создание поля с текстом для имен выбранных ботов
+        # создание поля с текстом "результаты турнира"
         game_speed_label = Label(self.frame1, text="Результаты Турнира:",
                                  font=W2_FONT, background=BG_COLOR, anchor=CENTER)
         game_speed_label.grid(row=0, column=1, padx=GRID_PADX, sticky=E + W)
@@ -204,10 +204,10 @@ class TournamentWindow(Frame):
 
         results_text = scrolledtext.ScrolledText(self.frame2, wrap="none")
         results_text.insert(INSERT, self.create_results_text(self.tournament.tournament_results))
+        results_text.configure(state="disable")
         results_text.pack(side=LEFT, expand=True, fill=X, padx=GRID_PADX, pady=GRID_PADY)
 
     def create_results_text(self, results: list) -> str:
-        s = ""
         bots_res = {}
         for bot in self.tournament.bots:
             name = bot.name
@@ -235,6 +235,23 @@ class TournamentWindow(Frame):
                     lose = bots_res[headers[i + 1]][2].count(headers[j + 1])
                     new_line.append(f"{win}/{draw}/{lose}")
             value.append(new_line.copy())
+        s = tabulate(value, headers, tablefmt="grid")
+        return s
+
+    def old_text_creator(self, results: list) -> str:
+        s = ""
+        bots_res = {}
+        for bot in self.tournament.bots:
+            name = bot.name
+            bots_res.update({name: [[], [], []]})
+        for result in results:
+            bot1, res, bot2 = result.split()
+            if res == "draw":
+                bots_res[bot1][1].append(bot2)
+                bots_res[bot2][1].append(bot1)
+            else:
+                bots_res[bot1][0].append(bot2)
+                bots_res[bot2][2].append(bot1)
         best_bots = ['', 0]
         worst_bots = ['', 0]
         for bot in self.tournament.bots:
@@ -311,7 +328,6 @@ class TournamentWindow(Frame):
 
         s += f"Лучшие боты с наибольшим количеством побед ({best_bots[1]}):\n{best_bots[0]}\n"
         s += f"Худшие боты с наибольшим количеством поражений ({worst_bots[1]}):\n{worst_bots[0]}"
-        s = tabulate(value, headers, tablefmt="grid")
         return s
 
     def close_bt_press(self):
