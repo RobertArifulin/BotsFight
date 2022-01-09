@@ -2,6 +2,7 @@ import time
 from tkinter import *
 from tkinter import filedialog as fd
 from tkinter import scrolledtext
+import tkinter.ttk as ttk
 from constants import *
 from PIL import ImageTk, Image
 from game import Game
@@ -123,7 +124,7 @@ class TournamentWindow(Frame):
         self.__pause_bt.grid(row=0, column=1, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание шкалы скорости
-        game_speed_scale = Scale(self.frame1, from_=1, to=10, orient=HORIZONTAL, font=W1_FONT,
+        game_speed_scale = Scale(self.frame1, from_=0, to=10, orient=HORIZONTAL, font=W1_FONT,
                                  command=self.game_speed_scale_select, background=BG_COLOR)
         game_speed_scale.set(self.game_speed)
         game_speed_scale.grid(row=0, column=2, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
@@ -185,7 +186,7 @@ class TournamentWindow(Frame):
             i.destroy()
 
         self.frame1 = Frame(self.window, background=BG_COLOR)
-        self.frame1.pack(fill=X, padx=GRID_PADX, pady=GRID_PADY, expand=True)
+        self.frame1.pack(side=TOP, fill=X, padx=GRID_PADX)
         for i in range(2):
             self.frame1.grid_columnconfigure(i, weight=1)
             self.frame1.grid_rowconfigure(i, weight=1)
@@ -195,19 +196,57 @@ class TournamentWindow(Frame):
                           text="Назад", font="Times 16")
         close_bt.grid(row=0, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
         # создание поля с текстом "результаты турнира"
-        game_speed_label = Label(self.frame1, text="Результаты Турнира:",
-                                 font=W2_FONT, background=BG_COLOR, anchor=CENTER)
+        game_speed_label = Label(self.frame1, text="Победы / Ничьи / Поражения",
+                                 font='Times 14', background=BG_COLOR, anchor=CENTER)
         game_speed_label.grid(row=0, column=1, padx=GRID_PADX, sticky=E + W)
 
         self.frame2 = Frame(self.window, background=BG_COLOR)
-        self.frame2.pack(fill=BOTH, expand=True, padx=GRID_PADX, pady=GRID_PADY)
+        self.frame2.pack(side=TOP, fill=BOTH, expand=True, padx=GRID_PADX, pady=GRID_PADY)
 
-        results_text = scrolledtext.ScrolledText(self.frame2, wrap="none")
-        results_text.insert(INSERT, self.create_results_text(self.tournament.tournament_results))
+        value, headers = self.reformat_results(self.tournament.tournament_results)
+
+        def fixed_map(option):
+            return [elm for elm in style.map("Treeview", query_opt=option)
+                    if elm[:2] != ("!disabled", "!selected")]
+
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure("Treeview", font=('JetBrains Mono', 13))
+        style.configure("Treeview.Heading", font=('JetBrains Mono', 13))
+        style.map("Treeview", foreground=fixed_map("foreground"), background=fixed_map("background"))
+
+        tree = ttk.Treeview(self.frame2, column=headers, show='headings', height=len(value) + 1)
+        tree.tag_configure('oddrow', background='#D4D4D4')
+        for i in range(len(headers) + 1):
+            w = self.frame2.winfo_width() // (len(headers) + 1)
+            if i == 0:
+                tree.column(f"# {i}", anchor=CENTER, width=w)
+                tree.heading(f"# {i}", text="")
+            else:
+                tree.column(f"# {i}", anchor=CENTER, width=w)
+                tree.heading(f"# {i}", text=f"{headers[i - 1]}")
+
+        for i in range(len(value)):
+            if i % 2 == 0:
+                tree.insert('', 'end', text=f"{i}", values=value[i])
+            else:
+                tree.insert('', 'end', text=f"{i}", values=value[i], tags=("oddrow",))
+        tree.pack(side=LEFT, expand=True, fill=BOTH, padx=GRID_PADX, pady=GRID_PADY)
+
+        self.frame3 = Frame(self.window, background=BG_COLOR)
+        self.frame3.pack(fill=BOTH, expand=True, padx=GRID_PADX, pady=GRID_PADY)
+
+        results_text = scrolledtext.ScrolledText(self.frame3, wrap="none", font='Times 13')
+        results_text.insert(INSERT, self.old_text_creator(self.tournament.tournament_results))
         results_text.configure(state="disable")
         results_text.pack(side=LEFT, expand=True, fill=X, padx=GRID_PADX, pady=GRID_PADY)
 
-    def create_results_text(self, results: list) -> str:
+    def create_results_table(self, results: list) -> str:
+        value, headers = self.reformat_results(results)
+        s = tabulate(value, headers, tablefmt="grid")
+        return s
+
+    def reformat_results(self, results: list) -> tuple[list, list]:
         bots_res = {}
         for bot in self.tournament.bots:
             name = bot.name
@@ -233,10 +272,9 @@ class TournamentWindow(Frame):
                     win = bots_res[headers[i + 1]][0].count(headers[j + 1])
                     draw = bots_res[headers[i + 1]][1].count(headers[j + 1])
                     lose = bots_res[headers[i + 1]][2].count(headers[j + 1])
-                    new_line.append(f"{win}/{draw}/{lose}")
+                    new_line.append(f"{win} / {draw} / {lose}")
             value.append(new_line.copy())
-        s = tabulate(value, headers, tablefmt="grid")
-        return s
+        return value, headers
 
     def old_text_creator(self, results: list) -> str:
         s = ""
@@ -366,7 +404,7 @@ class TournamentWindow(Frame):
                 self.__status_label_var.set(res)
                 self.__game_title_var.set(title)
                 self.display_board()
-                if ("Победа" in res or "Ничья" in res) and not self.is_fast:
+                if (("Победа" in res or "Ничья" in res) and not self.is_fast or self.game_speed == 0) and not self.is_paused:
                     self.pause_bt_press()
                 if not self.is_paused:
                     self.window.after((10 - self.game_speed) * 60 + 20, self.play_game)
@@ -586,8 +624,9 @@ class StartWindow(Tk):
         game_speed_label.grid(row=0, column=0, padx=GRID_PADX, pady=GRID_PADY, sticky=E + W)
 
         # создание шкалы скорости
-        self.game_speed_scale = Scale(frame3, from_=1, to=10, orient=HORIZONTAL, font=W1_FONT,
+        self.game_speed_scale = Scale(frame3, from_=0, to=10, orient=HORIZONTAL, font=W1_FONT,
                                       command=self.game_speed_scale_select, background=BG_COLOR)
+        self.game_speed_scale.set(1)
         self.game_speed_scale.grid(row=1, column=0, padx=GRID_PADX, pady=GRID_PADY)
 
         isfast_label = Label(frame3, text="Быстрый Режим", font=W1_FONT, background=BG_COLOR, anchor=CENTER)

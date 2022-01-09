@@ -63,11 +63,11 @@ class Matches(Game):
         canvas = ImageDraw.Draw(image)
         font = ImageFont.truetype('C:/Windows/Fonts/Calibri.ttf', size=30)
         if self.status == Status.bot1_next:
-            canvas.text((10, 90), f"Бот 1 взял {self.prev_count - self.matches} спичек.", fill='#000000', font=font)
-        if self.status == Status.bot2_next:
             canvas.text((10, 90), f"Бот 2 взял {self.prev_count - self.matches} спичек.", fill='#000000', font=font)
+        if self.status == Status.bot2_next:
+            canvas.text((10, 90), f"Бот 1 взял {self.prev_count - self.matches} спичек.", fill='#000000', font=font)
         if self.status == Status.bot1_won:
-            canvas.text((10, 90), f"Бот 1 победил взяв {self.prev_count - self.matches} спичек.", fill='#000000', font=font)
-        if self.status == Status.bot2_won:
             canvas.text((10, 90), f"Бот 2 победил взяв {self.prev_count - self.matches} спичек.", fill='#000000', font=font)
+        if self.status == Status.bot2_won:
+            canvas.text((10, 90), f"Бот 1 победил взяв {self.prev_count - self.matches} спичек.", fill='#000000', font=font)
         return image
