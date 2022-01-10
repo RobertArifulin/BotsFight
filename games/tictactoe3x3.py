@@ -1,5 +1,5 @@
 from game import Game, Status
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 from constants import *
 
 

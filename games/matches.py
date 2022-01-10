@@ -1,6 +1,5 @@
 from game import Game, Status
 from PIL import Image, ImageDraw, ImageFont
-from constants import *
 import random
 
 

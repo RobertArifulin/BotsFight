@@ -1,4 +1,3 @@
-import time
 import copy
 from game import Game, Status
 from bot import Bot

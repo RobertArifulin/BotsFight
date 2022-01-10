@@ -88,6 +88,13 @@ class TournamentWindow(Frame):
         self.__game_title_var.set(f"{self.tournament.standings[0][0].name} vs\n{self.tournament.standings[0][1].name}")
         self.__status_label_var.set(f"Ход {self.tournament.standings[0][0].name}")
 
+        self.frame1 = None
+        self.frame2 = None
+        self.frame3 = None
+        self.canvas = None
+        self.__board_canvas = None
+        self.__pause_bt = None
+
         self.create_ui()
 
     def create_ui(self):
@@ -404,15 +411,16 @@ class TournamentWindow(Frame):
                 self.__status_label_var.set(res)
                 self.__game_title_var.set(title)
                 self.display_board()
-                if (("Победа" in res or "Ничья" in res) and not self.is_fast or self.game_speed == 0) and not self.is_paused:
-                    self.pause_bt_press()
+                if not self.is_paused:
+                    if ("Победа" in res or "Ничья" in res or self.game_speed == 0) and not self.is_fast:
+                        self.pause_bt_press()
                 if not self.is_paused:
                     self.window.after((10 - self.game_speed) * 60 + 20, self.play_game)
             else:
                 self.pause_bt_press()
                 self.clear_ui()
                 self.display_tournament_results()
-        except:
+        except Exception:
             pass
 
     def display_board(self):
@@ -427,7 +435,7 @@ class TournamentWindow(Frame):
                      min(int(k * self.__board_canvas.winfo_width()), self.__board_canvas.winfo_height())))
             self.window.board = ImageTk.PhotoImage(image)
             self.canvas = self.__board_canvas.create_image(2, 2, anchor='nw', image=self.window.board)
-        except:
+        except Exception:
             pass
 
 
@@ -489,6 +497,8 @@ class StartWindow(Tk):
 
         self.TournamentWindow = None
         self.frame1 = None
+        self.isfast_bt = None
+        self.game_speed_scale = None
         self.__start_tournament_bt = None
         self.__selected_bots_lbox = None
 
