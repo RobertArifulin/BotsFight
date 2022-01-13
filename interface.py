@@ -243,7 +243,8 @@ class TournamentWindow(Frame):
         self.frame3 = Frame(self.window, background=BG_COLOR)
         self.frame3.pack(fill=BOTH, expand=True, padx=GRID_PADX, pady=GRID_PADY)
 
-        results_text = scrolledtext.ScrolledText(self.frame3, wrap="none", font='Times 13')
+        results_text = scrolledtext.ScrolledText(self.frame3, wrap="none", font='Times 13',
+                                                 height=self.old_text_creator(self.tournament.tournament_results).count("\n") + 1)
         results_text.insert(INSERT, self.old_text_creator(self.tournament.tournament_results))
         results_text.configure(state="disable")
         results_text.pack(side=LEFT, expand=True, fill=X, padx=GRID_PADX, pady=GRID_PADY)
@@ -737,14 +738,14 @@ class StartWindow(Tk):
             Проверяет, достаточно ли данных для начала турнира."""
         paths = fd.askopenfilenames(title='Выберете файлы ботов',
                                     filetypes=[('*', '.py'), ('*', '.exe'), ('*', '.pyw')])
-
+        l = self.__selected_bots_lbox.get(0, END)
         for path in paths:
-            if path not in self.selected_bots:
+            if path not in self.selected_bots and path.split("/")[-1] not in l:
                 self.selected_bots.append(path)
         self.selected_bots.sort()
 
-        s = [bot.split('/')[-1] for bot in self.selected_bots]
         self.__selected_bots_lbox.delete(0, END)
+        s = [bot.split('/')[-1] for bot in self.selected_bots]
         for i in s:
             self.__selected_bots_lbox.insert(END, i)
 
