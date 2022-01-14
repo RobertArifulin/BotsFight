@@ -2,6 +2,7 @@ import copy
 from game import Game, Status
 from bot import Bot
 from PIL import Image
+from constants import ERROR
 
 
 class Tournament:
@@ -97,7 +98,7 @@ class Tournament:
         if status not in [Status.bot1_won, Status.bot2_won, Status.draw]:
             if status == Status.bot1_next:
                 bot_turn = bot1.request_bot(self.game.get_board_string())
-                if bot_turn == "timeout":
+                if bot_turn == ERROR:
                     status = Status.bot2_won
                 else:
                     status = self.game.bot_made_turn(bot_turn)
@@ -105,7 +106,7 @@ class Tournament:
 
             elif status == Status.bot2_next:
                 bot_turn = bot2.request_bot(self.game.get_board_string())
-                if bot_turn == "timeout":
+                if bot_turn == ERROR:
                     status = Status.bot1_won
                 else:
                     status = self.game.bot_made_turn(bot_turn)
@@ -129,7 +130,15 @@ class Tournament:
             self.first_move -= 1
             return image, res[0], res[1]
 
-        res = self.turn(pair, self.game.get_status())
+        try:
+            res = self.turn(pair, self.game.get_status())
+        except:
+            res = self.game.get_status()
+            if res == Status.bot1_next:
+                res = Status.bot2_won0
+            elif res == Status.bot2_next:
+                res = Status.bot1_won
+
         image = self.game.draw_board_image()
         if res == Status.bot1_won:
             self.tournament_results.append(f"{pair[0].name} defeated {pair[1].name}")

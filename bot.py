@@ -1,5 +1,6 @@
 import sys
 import subprocess
+from constants import ERROR
 
 
 class Bot:
@@ -46,16 +47,16 @@ class Bot:
             try:
                 bot_response = subprocess.run([sys.executable, self.path], input=game_condition,
                                               capture_output=True, check=True, timeout=1)
-            except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
-                bot_response = "timeout"
+            except Exception:
+                bot_response = ERROR
 
         else:
             try:
                 bot_response = subprocess.run(self.path, input=game_condition, capture_output=True,
                                               check=True, timeout=1)
-            except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
-                bot_response = "timeout"
+            except Exception:
+                bot_response = ERROR
 
-        if bot_response != "timeout":
+        if bot_response != ERROR:
             bot_response = bot_response.stdout.decode("utf-8")
         return bot_response

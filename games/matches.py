@@ -4,6 +4,11 @@ import random
 
 
 class Matches(Game):
+    """
+    !Обратите внимание! Функция get_status тут не переопределена, т.к. в классе родителе он есть.
+    !Обратите внимание! Корректность хода может проверить только игра, т.к. программа отслеживает только ошибку,
+    все остальные случаи не в его компетенции.
+    """
 
     def __init__(self):
         super().__init__()
@@ -14,7 +19,12 @@ class Matches(Game):
         self.status = Status.bot1_next
 
     def game_init(self) -> str:
-        self.status = Status.bot1_next
+        """
+        Инициализация игры: создание поля, обнуление параметров.
+        :return:
+        str: Поле строкой.
+        """
+        self.status = Status.bot1_next  # ОБРАТИТЕ ВНИМАНИЕ! СТАТУС ТОЖЕ НАДО ОБНУЛЯТЬ!!!
         self.allowed_takes = [i for i in range(1, random.randint(3, 5))]
         self.matches = random.randint(self.allowed_takes[-1] * 2, 11)
         self.start_count = self.matches
@@ -22,12 +32,24 @@ class Matches(Game):
         return f"{self.matches} {self.allowed_takes[-1]}"
 
     def get_board_string(self) -> str:
+        """
+        Преобразование поля в строку и вывод ее.
+        :return:
+        str: Поле строкой.
+        """
         return f"{self.matches} {self.allowed_takes[-1]}"
 
     def bot_made_turn(self, turn: str) -> Status:
+        """
+        Изменение поля в зависимости от хода бота и изменение статуса.
+        :param turn:
+        Ход в виде строки. При написании бота берите хода формат отсюда.
+        :return:
+        Status: Статус игры.
+        """
         try:
             take = int(turn)
-        except:  # Проверки на корректность хода
+        except:  # Проверки на корректность хода.
             if self.status == Status.bot1_next:
                 return Status.bot2_won
             else:
@@ -53,6 +75,11 @@ class Matches(Game):
         return self.status
 
     def draw_board_image(self) -> Image:
+        """
+        Отрисовка поля.
+        :return:
+        Image: картинка поля в формате PIL Image.
+        """
         image = Image.new('RGB', (420, 420), color=(255, 255, 255))
         match = Image.open(r"C:\Users\rober\PycharmProjects\BotsFight\images\match.png")
         match = match.resize((40, 80))

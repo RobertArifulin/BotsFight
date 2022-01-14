@@ -24,8 +24,10 @@ def games_import() -> dict:
 
 def main():
     games = games_import()
-    game_names = list(games.keys())
-    start_window = StartWindow(games)
+    try:
+        start_window = StartWindow(games)
+    except KeyboardInterrupt:
+        exit(0)
 
 
 if __name__ == '__main__':

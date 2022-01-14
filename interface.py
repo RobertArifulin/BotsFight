@@ -421,8 +421,8 @@ class TournamentWindow(Frame):
                 self.pause_bt_press()
                 self.clear_ui()
                 self.display_tournament_results()
-        except Exception:
-            pass
+        except:
+            exit(0)
 
     def display_board(self):
         try:
@@ -677,8 +677,11 @@ class StartWindow(Tk):
         """ Отвечает за работу __start_tournament_bt. Сворачивает данное окно, создает TournamentWindow."""
         self.withdraw()
         self.TournamentWindow = None
-        self.TournamentWindow = TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed,
-                                                 self.selected_game_number, self.is_fast, self)
+        try:
+            self.TournamentWindow = TournamentWindow(self.selected_bots, self.selected_game, self.selected_speed,
+                                                     self.selected_game_number, self.is_fast, self)
+        except KeyboardInterrupt:
+            exit(0)
 
     def isfast_bt_press(self):
         """ Отвечает за работу __is_fast_bt. Сворачивает данное окно, создает TournamentWindow."""
